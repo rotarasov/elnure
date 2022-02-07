@@ -1,4 +1,4 @@
-from django import apps
+from django.apps import apps
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.hashers import make_password
 from django.db.models import Model
@@ -20,7 +20,7 @@ class UserManager(BaseUserManager):
 
         email = self.normalize_email(email)
         user = self.model(
-            email=email, first_name=first_name, last_name=last_name**extra_fields
+            email=email, first_name=first_name, last_name=last_name, **extra_fields
         )
         user.password = make_password(password)
         user.save(using=self._db)

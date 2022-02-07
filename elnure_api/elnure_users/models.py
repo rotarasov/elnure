@@ -16,7 +16,7 @@ class User(CommonModel, AbstractUser):
     last_name = models.CharField(max_length=150)
     patronymic = models.CharField(max_length=150, blank=True, null=True)
     academic_group = models.ForeignKey(
-        "AcademicGroup", on_delete=models.RESTRICT, related_name="students"
+        "AcademicGroup", on_delete=models.RESTRICT, related_name="students", null=True
     )
     roles = models.ManyToManyField("Role", related_name="users")
 
@@ -64,7 +64,7 @@ class AcademicGroup(CommonModel):
         First part states for department
         Second part states for start year
         Third part states for group number
-        ex. ПЗПІ-18-5 => 2018
+        ex. SE-18-5 => 2018
         """
         row_year = self.name.split("-")[1]
         return datetime.strptime("%y", row_year)
