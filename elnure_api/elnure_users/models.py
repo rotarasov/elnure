@@ -3,11 +3,11 @@ from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from elnure_common.models import CommonModel
+from elnure_common.models import CommonModel, ActiveMixin
 from elnure_users.managers import UserManager
 
 
-class User(CommonModel, AbstractUser):
+class User(ActiveMixin, CommonModel, AbstractUser):
     username = None
     date_joined = None
 
@@ -18,7 +18,6 @@ class User(CommonModel, AbstractUser):
     academic_group = models.ForeignKey(
         "AcademicGroup", on_delete=models.RESTRICT, related_name="students", null=True
     )
-    roles = models.ManyToManyField("Role", related_name="users")
 
     @property
     def is_active(self):
@@ -26,7 +25,7 @@ class User(CommonModel, AbstractUser):
 
     @property
     def is_admin(self):
-        return bool(self.roles.count(name="Adminsistrator"))
+        return self.groups.exists(name="Adminsistrator")
 
     @property
     def is_staff(self):
@@ -41,19 +40,17 @@ class User(CommonModel, AbstractUser):
 
     objects = UserManager()
 
+    def get_full_name(self):
+        full_name = f"{self.last_name} {self.first_name}"
+        if self.patronymic:
+            full_name += f" {self.patronymic}"
+        return full_name
+
     def __str__(self) -> str:
         return self.email
 
     class Meta:
         db_table = "users"
-
-
-class Role(models.Model):
-    name = models.CharField(max_length=30)
-    description = models.CharField(max_length=150)
-
-    class Meta:
-        db_table = "roles"
 
 
 class AcademicGroup(CommonModel):
