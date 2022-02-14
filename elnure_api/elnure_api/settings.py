@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "elnure_common",
     "elnure_users",
+    "elnure_core",
 ]
 
 MIDDLEWARE = [

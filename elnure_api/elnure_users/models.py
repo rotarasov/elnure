@@ -3,7 +3,7 @@ from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from elnure_common.models import CommonModel, ActiveMixin
+from elnure_common.models import CommonModel, ActiveMixin, StudentGroupMixin
 from elnure_users.managers import UserManager
 
 
@@ -52,19 +52,28 @@ class User(ActiveMixin, CommonModel, AbstractUser):
     class Meta:
         db_table = "users"
 
+    def __str__(self) -> str:
+        return self.email
 
-class AcademicGroup(CommonModel):
-    name = models.CharField(max_length=30)
 
-    def get_start_year(self):
-        """When academic group was formed.
-        First part states for department
-        Second part states for start year
-        Third part states for group number
-        ex. SE-18-5 => 2018
+class AcademicGroup(StudentGroupMixin, CommonModel):
+    @property
+    def current_study_year(self):
         """
-        row_year = self.name.split("-")[1]
-        return datetime.strptime("%y", row_year)
+        Can be obtained from the start year of the group
+        NOTE: It is important to pay attention to the season of the year
+        e.g. Group: SE-19-5
+        Season: spring 2022 => StudyYear.THIRD
+        Season: autumn 2022 => StudyYear.FOURTH
+        """
+        current_date = datetime.now()
+        next_year = (
+            current_date.month // 9
+        )  # July and August are also considered as previous year
+        return current_date.year - self.start_year + next_year
 
     class Meta:
         db_table = "academic_groups"
+
+    def __str__(self) -> str:
+        return self.name
