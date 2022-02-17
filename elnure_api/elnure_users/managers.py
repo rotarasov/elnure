@@ -3,6 +3,8 @@ from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.hashers import make_password
 from django.db.models import Model
 
+from elnure_common.managers import ActiveManager
+
 
 class UserManager(BaseUserManager):
     def _create_user(self, email, password, first_name, last_name, **extra_fields):
@@ -39,3 +41,7 @@ class UserManager(BaseUserManager):
         except Model.DoesNotExist:
             raise Model.DoesNotExist("No Administrator role exists")
         return superuser
+
+
+class ActiveUserManager(ActiveManager, UserManager):
+    pass

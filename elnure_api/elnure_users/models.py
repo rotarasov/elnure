@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 from elnure_common.models import CommonModel, ActiveMixin, StudentGroupMixin
-from elnure_users.managers import UserManager
+from elnure_users.managers import UserManager, ActiveUserManager
 
 
 class User(ActiveMixin, CommonModel, AbstractUser):
@@ -38,7 +38,8 @@ class User(ActiveMixin, CommonModel, AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
-    objects = UserManager()
+    unfiltered = UserManager()
+    objects = ActiveUserManager()
 
     def get_full_name(self):
         full_name = f"{self.last_name} {self.first_name}"
@@ -51,27 +52,13 @@ class User(ActiveMixin, CommonModel, AbstractUser):
 
     class Meta:
         db_table = "users"
+        _default_manager = "objects"
 
     def __str__(self) -> str:
         return self.email
 
 
 class AcademicGroup(StudentGroupMixin, CommonModel):
-    @property
-    def current_study_year(self):
-        """
-        Can be obtained from the start year of the group
-        NOTE: It is important to pay attention to the season of the year
-        e.g. Group: SE-19-5
-        Season: spring 2022 => StudyYear.THIRD
-        Season: autumn 2022 => StudyYear.FOURTH
-        """
-        current_date = datetime.now()
-        next_year = (
-            current_date.month // 9
-        )  # July and August are also considered as previous year
-        return current_date.year - self.start_year + next_year
-
     class Meta:
         db_table = "academic_groups"
 

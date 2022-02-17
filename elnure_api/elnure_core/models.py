@@ -87,7 +87,7 @@ class ElectiveGroup(StudentGroupMixin, CommonModel):
 
 class ApplicationWindow(CommonModel):
     """
-    Entity to configure student application for elective courses
+    Entity to configure flow of student applications for elective courses
     """
 
     start_date = models.DateTimeField()
