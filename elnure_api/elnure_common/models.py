@@ -56,6 +56,21 @@ class StudentGroupMixin(models.Model):
         return datetime.strptime("%y", row_year)
 
     @property
+    def current_study_year(self):
+        """
+        Can be obtained from the start year of the group
+        NOTE: It is important to pay attention to the season of the year
+        e.g. Group: SE-19-5
+        Season: spring 2022 => StudyYear.THIRD
+        Season: autumn 2022 => StudyYear.FOURTH
+        """
+        current_date = datetime.now()
+        next_year = (
+            current_date.month // 9
+        )  # July and August are also considered as previous year
+        return current_date.year - self.start_year + next_year
+
+    @property
     def number(self):
         return int(self._get_splitted_group()[2])
 

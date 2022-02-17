@@ -116,6 +116,12 @@ class Choice(CommonModel):
     elective_groups = models.ManyToManyField(
         ElectiveGroup, related_name="students_choices"
     )
+    application_window = models.ForeignKey(
+        ApplicationWindow,
+        on_delete=models.SET_NULL,
+        related_name="choices",
+        null=True,
+    )
 
     class Meta:
         db_table = "choices"
