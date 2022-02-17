@@ -21,7 +21,7 @@ def test_create_user(user_model):
     assert user.academic_group == None
 
 
-@pytest.mark.usefixtures("roles")
+@pytest.mark.usefixtures("groups")
 def test_create_superuser(user_model):
     superuser = user_model.objects.create_superuser(
         email="admin@nure.ua",
@@ -31,5 +31,5 @@ def test_create_superuser(user_model):
         patronymic="Романович",
     )
 
-    assert superuser.roles.count() == 1
-    assert superuser.roles.first().name == "Administrator"
+    assert superuser.groups.count() == 1
+    assert superuser.groups.first().name == "Administrator"

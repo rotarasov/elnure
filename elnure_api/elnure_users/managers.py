@@ -1,5 +1,5 @@
 from django.apps import apps
-from django.contrib.auth.models import BaseUserManager
+from django.contrib.auth.models import Group, BaseUserManager
 from django.contrib.auth.hashers import make_password
 from django.db.models import Model
 
@@ -35,11 +35,10 @@ class UserManager(BaseUserManager):
         superuser = self._create_user(
             email, password, first_name, last_name, **extra_fields
         )
-        Role = apps.get_model("elnure_users.Role")
         try:
-            superuser.roles.add(Role.objects.get(name="Administrator"))
+            superuser.groups.add(Group.objects.get(name="Administrator"))
         except Model.DoesNotExist:
-            raise Model.DoesNotExist("No Administrator role exists")
+            raise Model.DoesNotExist("No Administrator group exists")
         return superuser
 
 

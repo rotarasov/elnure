@@ -1,17 +1,14 @@
 import pytest
 from django.apps import apps
 from django.conf import settings
-
-from elnure_users.models import Role
+from django.contrib.auth.models import Group
 
 
 @pytest.fixture
-def roles():
+def groups():
     return {
-        "Administrator": Role.objects.create(
-            name="Administrator", description="lorem ipsum"
-        ),
-        "Student": Role.objects.create(name="Student", description="lorem ipsum"),
+        "Administrator": Group.objects.create(name="Administrator"),
+        "Student": Group.objects.create(name="Student"),
     }
 
 
