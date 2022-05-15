@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 
 from elnure_core import models
@@ -16,8 +17,11 @@ class BlockSerializer(serializers.ModelSerializer):
 
 
 class InstructorAssignmentSerializer(serializers.ModelSerializer):
+    instructor_id = serializers.IntegerField()
+    full_name = serializers.CharField(source="instructor.full_name", read_only=True)
+
     class Meta:
-        exclude = ["create_date", "update_date"]
+        fields = ["instructor_id", "full_name", "position"]
         model = models.InstructorAssignment
 
 
@@ -27,11 +31,25 @@ class ElectiveCourseSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = "__all__"
+        fields = [
+            "id",
+            "instructor_assignments",
+            "semester",
+            "name",
+            "shortcut",
+            "syllabus",
+            "capacity",
+            "credits",
+            "performance_assessment",
+            "block",
+        ]
         model = models.ElectiveCourse
 
+    @transaction.atomic
     def create(self, validated_data):
-        instructor_assignments = validated_data.pop("instructor_assignments", [])
+        instructor_assignments = (
+            validated_data.pop("instructors", {}).get("through", {}).get("objects", [])
+        )
 
         instance = super().create(validated_data)
 
@@ -39,17 +57,22 @@ class ElectiveCourseSerializer(serializers.ModelSerializer):
 
         return instance
 
+    @transaction.atomic
     def update(self, instance, validated_data):
-        instructor_assignments = validated_data.pop("instructor_assignments", [])
+        instructor_assignments = (
+            validated_data.pop("instructors", {}).get("through", {}).get("objects", [])
+        )
 
         instance = super().update(instance, validated_data)
 
-        self._save_instructor_assignments(instance, instructor_assignments)
+        if instructor_assignments or not self.partial:
+            self._save_instructor_assignments(instance, instructor_assignments)
 
         return instance
 
+    @staticmethod
     def _save_instructor_assignments(course, assignments):
-        models.InstructorAssignment.filter(to_elective_course=course).delete()
+        models.InstructorAssignment.objects.filter(to_elective_course=course).delete()
 
         objs = [
             models.InstructorAssignment(to_elective_course=course, **ia)
