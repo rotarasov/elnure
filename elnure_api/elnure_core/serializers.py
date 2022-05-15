@@ -1,5 +1,3 @@
-from django.db import transaction
-from django.db.models import QuerySet
 from rest_framework import serializers
 
 from elnure_core import models
@@ -18,18 +16,18 @@ class BlockSerializer(serializers.ModelSerializer):
 
 
 class InstructorAssignmentSerializer(serializers.ModelSerializer):
-    full_name = serializers.CharField(read_only=True, source="instructor.full_name")
-
     class Meta:
-        fields = "__all__"
+        exclude = ["create_date", "update_date"]
         model = models.InstructorAssignment
 
 
 class ElectiveCourseSerializer(serializers.ModelSerializer):
-    instructor_assignments = InstructorAssignmentSerializer(many=True)
+    instructor_assignments = InstructorAssignmentSerializer(
+        many=True, source="instructors.through.objects"
+    )
 
     class Meta:
-        exclude = ["instructors"]
+        fields = "__all__"
         model = models.ElectiveCourse
 
     def create(self, validated_data):
