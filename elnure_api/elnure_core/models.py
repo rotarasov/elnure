@@ -19,7 +19,7 @@ class Instructor(CommonModel):
 
 class Block(CommonModel):
     name = models.CharField(max_length=150)
-    credits = models.PositiveIntegerField()
+    credits = models.PositiveIntegerField(null=True)
 
     class Meta:
         db_table = "blocks"

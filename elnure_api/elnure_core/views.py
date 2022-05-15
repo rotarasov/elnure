@@ -1,3 +1,84 @@
-from django.shortcuts import render
+from rest_framework.viewsets import ModelViewSet
 
-# Create your views here.
+from elnure_core import serializers, models, filters
+
+
+class InstructorViewSet(ModelViewSet):
+    """
+    Instructor view set
+
+    retrieve: Get an instructor by given id
+    list: Get all instructors
+    create: Create an instrucor
+    update: Update an instrucor by id
+    partial_update: Update only some fields of an instrucor by id
+    delete: Delete an instrucor by id
+    """
+
+    serializer_class = serializers.InstructorSerializer
+    queryset = models.Instructor.objects
+
+
+class BlockViewSet(ModelViewSet):
+    """
+    Block view set
+
+    retrieve: Get a block by given id
+    list: Get all blocks
+    create: Create a block
+    update: Update a block by id
+    partial_update: Update only some fields of a block by id
+    delete: Delete a block by id
+    """
+
+    serializer_class = serializers.BlockSerializer
+    queryset = models.Block.objects
+
+
+class ElectiveCourseViewSet(ModelViewSet):
+    """
+    Elective Course view set
+
+    retrieve: Get an elective course by given id
+    list: Get all elective courses or filtered by semester or study year
+    create: Create an elective course
+    update: Update an elective course by id
+    partial_update: Update only some fields of an elective course by id
+    delete: Delete an elective course by id
+    """
+
+    serializer_class = serializers.ElectiveCourseSerializer
+    queryset = models.ElectiveCourse.objects
+    filterset_class = filters.ElectiveCourseFilterSet
+
+
+class ApplicationWindowViewSet(ModelViewSet):
+    """
+    Application Window view set
+
+    retrieve: Get an application window by given id
+    list: Get all application widows
+    create: Create an application window
+    update: Update an application window by id
+    partial_update: Update only some fields of an application window by id
+    delete: Delete an application window by id
+    """
+
+    serializer_class = serializers.ApplicationWindowSerializer
+    queryset = models.ApplicationWindow.objects
+
+
+class ChoiceViewSet(ModelViewSet):
+    """
+    Student Choice view set
+
+    retrieve: Get a student choice by given id
+    list: Get all student choices or filtered by study year or year of application
+    create: Create student choice
+    update: Update student choice by id
+    partial_update: Update only some fields of student choice by id
+    delete: Delete student  by id
+    """
+
+    serializer_class = serializers.ChoiceSerializer
+    queryset = models.Choice.objects
