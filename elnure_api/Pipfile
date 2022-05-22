@@ -8,6 +8,8 @@ django = "*"
 django-rest-framework = "*"
 django-environ = "*"
 django-filter = "*"
+djangorestframework-simplejwt = "*"
+requests = "*"
 
 [dev-packages]
 powerline-shell = "*"

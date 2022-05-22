@@ -11,9 +11,9 @@ env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env()
 
 
-SECRET_KEY = env.str("SECRET_KEY")
+SECRET_KEY = env.str("DJANGO_SECRET_KEY")
 
-DEBUG = env.bool("DEBUG")
+DEBUG = env.bool("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = []
 
@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "django_filters",
+    "rest_framework_simplejwt",
     "elnure_common",
     "elnure_users",
     "elnure_core",
@@ -65,7 +66,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "elnure_api.wsgi.application"
 
 
-DATABASES = {"default": env.db()}
+DATABASES = {"default": env.db("DJANGO_DATABASE_URL")}
 
 
 # Password validation
@@ -90,7 +91,10 @@ AUTH_PASSWORD_VALIDATORS = [
 REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
-    ]
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }
 
 
@@ -110,5 +114,14 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Custom user model
 
 AUTH_USER_MODEL = "elnure_users.User"
+
+
+BASE_BACKEND_URL = env.str("DJANGO_BASE_BACKEND_URL")
+BASE_FRONTEND_URL = env.str("DJANGO_BASE_FRONTEND_URL")
+
+
+GOOGLE_OAUTH2_CLIENT_ID = env.str("DJANGO_GOOGLE_OAUTH2_CLIENT_ID")
+GOOGLE_OAUTH2_CLIENT_SECRET = env.str("DJANGO_GOOGLE_OAUTH2_CLIENT_SECRET")
