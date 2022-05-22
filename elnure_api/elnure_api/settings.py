@@ -6,7 +6,7 @@ import environ
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Add .env file to environmental variables
-env = environ.Env(DEBUG=(bool, False))
+env = environ.Env(DJANGO_DEBUG=(bool, True))
 
 environ.Env.read_env()
 
@@ -92,9 +92,13 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
-    "DEFAULT_AUTHENTICATION_CLASSES": (
+    "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
 }
 
 

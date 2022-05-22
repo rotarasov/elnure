@@ -1,4 +1,11 @@
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.mixins import (
+    RetrieveModelMixin,
+    CreateModelMixin,
+    UpdateModelMixin,
+    ListModelMixin,
+)
+from rest_framework.throttling import UserRateThrottle
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from elnure_core import serializers, models, filters
 
@@ -68,7 +75,17 @@ class ApplicationWindowViewSet(ModelViewSet):
     queryset = models.ApplicationWindow.objects
 
 
-class ChoiceViewSet(ModelViewSet):
+class ChoiceRateThrottle(UserRateThrottle):
+    rate = "100/minute"
+
+
+class ChoiceViewSet(
+    CreateModelMixin,
+    RetrieveModelMixin,
+    UpdateModelMixin,
+    ListModelMixin,
+    GenericViewSet,
+):
     """
     Student Choice view set
 
@@ -77,8 +94,13 @@ class ChoiceViewSet(ModelViewSet):
     create: Create student choice
     update: Update student choice by id
     partial_update: Update only some fields of student choice by id
-    delete: Delete student  by id
     """
 
+    throttle_classes = [ChoiceRateThrottle]
     serializer_class = serializers.ChoiceSerializer
-    queryset = models.Choice.objects
+    queryset = models.Choice.objects.select_related("application_window")
+
+    def get_serializer_class(self):
+        if self.action in ("list", "retrieve"):
+            return serializers.RefChoiceSerializer
+        return serializers.ChoiceSerializer

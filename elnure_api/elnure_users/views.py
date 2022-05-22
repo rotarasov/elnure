@@ -1,6 +1,7 @@
 from urllib.parse import urlencode
 
 from django.conf import settings
+from django.contrib import auth
 from django.shortcuts import redirect
 from django.urls import reverse
 from rest_framework.exceptions import NotFound, AuthenticationFailed
@@ -22,6 +23,8 @@ class GoogleLoginView(APIView):
 
     FRONTEND_LOGIN_URL = f"{settings.BASE_FRONTEND_URL}/login"
     BACKEND_DOMAIN = f"{settings.BASE_BACKEND_URL}"
+
+    permission_classes = []
 
     def get(self, request, *args, **kwargs):
         if not request.query_params:
@@ -50,6 +53,10 @@ class GoogleLoginView(APIView):
 
         if not user.active:
             raise NotFound("No active user with this data")
+
+        if settings.DEBUG:
+            # Login in to skip adding auth header every time on browsable API
+            auth.login(request, user)
 
         jwt_access_token = generate_access_token_for_user(user)
 

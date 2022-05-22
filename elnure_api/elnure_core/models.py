@@ -1,7 +1,7 @@
 from random import choice
 from django.db import models
 from django.conf import settings
-from django.core.validators import MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from elnure_common.fields import ElnureEnumField
 from elnure_common.models import CommonModel, StudentGroupMixin, SemesterMixin
@@ -19,7 +19,7 @@ class Instructor(CommonModel):
 
 class Block(CommonModel):
     name = models.CharField(max_length=150)
-    credits = models.PositiveIntegerField(null=True)
+    credits = models.IntegerField(null=True, validators=[MinValueValidator(1)])
 
     class Meta:
         db_table = "blocks"
@@ -36,8 +36,8 @@ class ElectiveCourse(SemesterMixin, CommonModel):
     name = models.CharField(max_length=50)
     shortcut = models.CharField(max_length=10)
     syllabus = models.CharField(max_length=300)
-    capacity = models.PositiveIntegerField(null=True)
-    credits = models.PositiveIntegerField()
+    capacity = models.IntegerField(null=True, validators=[MinValueValidator(1)])
+    credits = models.IntegerField(validators=[MinValueValidator(1)])
     performance_assessment = ElnureEnumField(
         PerformanceAssessment, default=PerformanceAssessment.GRADED_SEMESTER
     )
@@ -100,21 +100,24 @@ class ApplicationWindow(CommonModel):
         return f"#{self.id}: {self.start_date} - {self.end_date}"
 
 
+# TODO: Add strategy field
 class Choice(CommonModel):
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.DO_NOTHING,
         related_name="elective_course_choices",
     )
-    study_year = models.PositiveIntegerField(
+    study_year = models.IntegerField(
         help_text="Study year of elective courses which student applies for",
-        validators=[MaxValueValidator(4)],
+        validators=[MinValueValidator(2), MaxValueValidator(4)],
     )
     value = models.JSONField(
         help_text="Value to be processed in one of the descendants of BaseChoiceHandler"
     )
     elective_groups = models.ManyToManyField(
-        ElectiveGroup, related_name="students_choices"
+        ElectiveGroup,
+        related_name="students_choices",
+        help_text="Elective groups attached to students after groups formation",
     )
     application_window = models.ForeignKey(
         ApplicationWindow,
@@ -125,6 +128,7 @@ class Choice(CommonModel):
 
     class Meta:
         db_table = "choices"
+        unique_together = ["student", "application_window"]
 
     def __str__(self) -> str:
         return f"{self.student.get_full_name()} -- {self.study_year} study year"

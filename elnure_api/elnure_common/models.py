@@ -79,7 +79,9 @@ class StudentGroupMixin(models.Model):
 
 
 class SemesterMixin(models.Model):
-    semester = models.PositiveIntegerField(validators=[MaxValueValidator(8)])
+    semester = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(8)]
+    )
 
     @property
     def study_year(self):
