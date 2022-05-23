@@ -98,6 +98,7 @@ class ChoiceViewSet(
 
     throttle_classes = [ChoiceRateThrottle]
     serializer_class = serializers.ChoiceSerializer
+    filterset_class = filters.ChoiceFilterSet
 
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):

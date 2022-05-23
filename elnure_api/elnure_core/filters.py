@@ -20,3 +20,9 @@ class ElectiveCourseFilterSet(filters.FilterSet):
     class Meta:
         model = models.ElectiveCourse
         fields = ["semester", "instructors", "block"]
+
+
+class ChoiceFilterSet(filters.FilterSet):
+    application_window = filters.NumberFilter(
+        field_name="application_window_id", lookup_expr="exact"
+    )
