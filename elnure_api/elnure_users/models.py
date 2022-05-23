@@ -1,7 +1,9 @@
 from datetime import datetime
+from email.policy import default
 
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from elnure_common.models import CommonModel, ActiveMixin, StudentGroupMixin
 from elnure_users.managers import UserManager, ActiveUserManager
@@ -17,6 +19,11 @@ class User(ActiveMixin, CommonModel, AbstractUser):
     patronymic = models.CharField(max_length=150, blank=True, null=True)
     academic_group = models.ForeignKey(
         "AcademicGroup", on_delete=models.RESTRICT, related_name="students", null=True
+    )
+    # TODO: Make rating contain default values for all semesters
+    ratings = models.JSONField(
+        default=[],
+        help_text="Student rating for multiple semesters ordered by semester",
     )
 
     @property

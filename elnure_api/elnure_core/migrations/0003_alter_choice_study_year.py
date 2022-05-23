@@ -7,13 +7,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('elnure_core', '0002_alter_choice_elective_groups_and_more'),
+        ("elnure_core", "0002_alter_choice_elective_groups_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='choice',
-            name='study_year',
-            field=models.PositiveIntegerField(help_text='Study year of elective courses which student applies for', validators=[django.core.validators.MinValueValidator(2), django.core.validators.MaxValueValidator(4)]),
+            model_name="choice",
+            name="study_year",
+            field=models.PositiveIntegerField(
+                help_text="Study year of elective courses which student applies for",
+                validators=[
+                    django.core.validators.MinValueValidator(2),
+                    django.core.validators.MaxValueValidator(4),
+                ],
+            ),
         ),
     ]

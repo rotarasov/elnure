@@ -1,4 +1,3 @@
-from random import choice
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -100,7 +99,11 @@ class ApplicationWindow(CommonModel):
         return f"#{self.id}: {self.start_date} - {self.end_date}"
 
 
-# TODO: Add strategy field
+class Strategy(models.TextChoices):
+    DEFAULT = "DEFAULT"
+    OPTIMIZED = "OPTIMIZED"
+
+
 class Choice(CommonModel):
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -112,7 +115,7 @@ class Choice(CommonModel):
         validators=[MinValueValidator(2), MaxValueValidator(4)],
     )
     value = models.JSONField(
-        help_text="Value to be processed in one of the descendants of BaseChoiceHandler"
+        help_text="Value to be processed in one of the descendants of BaseChoiceStrategy"
     )
     elective_groups = models.ManyToManyField(
         ElectiveGroup,
@@ -125,6 +128,7 @@ class Choice(CommonModel):
         related_name="choices",
         null=True,
     )
+    strategy = ElnureEnumField(Strategy, null=True)
 
     class Meta:
         db_table = "choices"
@@ -132,3 +136,18 @@ class Choice(CommonModel):
 
     def __str__(self) -> str:
         return f"{self.student.get_full_name()} -- {self.study_year} study year"
+
+
+class StrategyResult(models.Model):
+    application_window = models.ForeignKey(
+        ApplicationWindow,
+        on_delete=models.CASCADE,
+        related_name="strategy_run_results",
+    )
+    strategy = ElnureEnumField(Strategy)
+    value = models.JSONField(
+        help_text="List of lective groups for elective subjects with students"
+    )
+
+    class Meta:
+        db_table = "strategy_results"

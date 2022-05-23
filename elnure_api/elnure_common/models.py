@@ -53,7 +53,7 @@ class StudentGroupMixin(models.Model):
         ex. SE-18-5 => 2018
         """
         row_year = int(self._get_splitted_group()[1])
-        return datetime.strptime("%y", row_year)
+        return datetime.strptime("%y", row_year).year
 
     @property
     def current_study_year(self):

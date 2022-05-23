@@ -8,17 +8,21 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('elnure_core', '0001_initial'),
+        ("elnure_core", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='choice',
-            name='elective_groups',
-            field=models.ManyToManyField(help_text='Elective groups attached to students after groups formation', related_name='students_choices', to='elnure_core.electivegroup'),
+            model_name="choice",
+            name="elective_groups",
+            field=models.ManyToManyField(
+                help_text="Elective groups attached to students after groups formation",
+                related_name="students_choices",
+                to="elnure_core.electivegroup",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='choice',
-            unique_together={('student', 'application_window')},
+            name="choice",
+            unique_together={("student", "application_window")},
         ),
     ]
