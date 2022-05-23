@@ -129,3 +129,10 @@ BASE_FRONTEND_URL = env.str("DJANGO_BASE_FRONTEND_URL")
 
 GOOGLE_OAUTH2_CLIENT_ID = env.str("DJANGO_GOOGLE_OAUTH2_CLIENT_ID")
 GOOGLE_OAUTH2_CLIENT_SECRET = env.str("DJANGO_GOOGLE_OAUTH2_CLIENT_SECRET")
+GOOGLE_OAUTH2_SCOPE = " ".join(
+    [
+        "openid",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile",
+    ]
+)

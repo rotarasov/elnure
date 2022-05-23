@@ -98,9 +98,13 @@ class ChoiceViewSet(
 
     throttle_classes = [ChoiceRateThrottle]
     serializer_class = serializers.ChoiceSerializer
-    queryset = models.Choice.objects.select_related("application_window")
 
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):
             return serializers.RefChoiceSerializer
         return serializers.ChoiceSerializer
+
+    def get_queryset(self):
+        return models.Choice.objects.filter(student=self.request.user).select_related(
+            "application_window"
+        )

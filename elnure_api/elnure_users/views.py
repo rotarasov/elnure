@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import auth
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.functional import cached_property
 from rest_framework.exceptions import NotFound, AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -26,11 +27,28 @@ class GoogleLoginView(APIView):
 
     permission_classes = []
 
+    @cached_property
+    def redirect_uri(self):
+        return f"{self.BACKEND_DOMAIN}{reverse('authenticate-google-oauth2')}"
+
+    _user_redirect_url = None
+
     def get(self, request, *args, **kwargs):
-        if not request.query_params:
+        if "r" in request.query_params:
             # Absence of query params implies effort to authenticate from DRF in browser
             # TODO: Make correct behavior for DRF in browser
-            redirect(self.GOOGLE_AUTH_URL)
+            request.session["r"] = request.query_params["r"]
+            params = urlencode(
+                {
+                    "response_type": "code",
+                    "client_id": settings.GOOGLE_OAUTH2_CLIENT_ID,
+                    "redirect_uri": self.redirect_uri,
+                    "prompt": "select_account",
+                    "access_type": "offline",
+                    "scope": settings.GOOGLE_OAUTH2_SCOPE,
+                }
+            )
+            return redirect(f"{self.GOOGLE_AUTH_URL}?{params}")
 
         request_serializer = RequestSerializer(data=request.query_params)
         request_serializer.is_valid(raise_exception=True)
@@ -55,7 +73,7 @@ class GoogleLoginView(APIView):
             raise NotFound("No active user with this data")
 
         if settings.DEBUG:
-            # Login in to skip adding auth header every time on browsable API
+            # Login in to skip adding auth header every time during debug
             auth.login(request, user)
 
         jwt_access_token = generate_access_token_for_user(user)
@@ -68,13 +86,17 @@ class GoogleLoginView(APIView):
             }
         )
 
+        if "r" in request.session:
+            r = request.session["r"]
+            del request.session["r"]
+            return redirect(r)
+
         return Response(response_serializer.initial_data, status=200)
 
     def obtain_google_access_token(self, client, code):
-        auth_endpoint = reverse("authenticate-google-oauth2")
-        redirect_uri = f"{self.BACKEND_DOMAIN}{auth_endpoint}"
-
-        access_token = client.get_access_token(code=code, redirect_uri=redirect_uri)
+        access_token = client.get_access_token(
+            code=code, redirect_uri=self.redirect_uri
+        )
 
         return access_token
 
