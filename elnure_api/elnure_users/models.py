@@ -34,6 +34,12 @@ class User(ActiveMixin, CommonModel, AbstractUser):
     academic_group = models.ForeignKey(
         "AcademicGroup", on_delete=models.RESTRICT, related_name="students", null=True
     )
+    elective_groups = models.ManyToManyField(
+        "elnure_core.ElectiveGroup",
+        related_name="students",
+        through="elnure_core.ElectiveGroupStudentAssociation",
+        help_text="Elective groups attached to the student after groups formation",
+    )
 
     @property
     def is_active(self):

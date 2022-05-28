@@ -19,6 +19,7 @@ class Instructor(CommonModel):
 class Block(CommonModel):
     name = models.CharField(max_length=150)
     total_credits = models.IntegerField(null=True, validators=[MinValueValidator(1)])
+    capacity = models.IntegerField(null=True, validators=[MinValueValidator(1)])
     semester = models.ForeignKey(
         "elnure_config.Semester",
         related_name="blocks",
@@ -119,11 +120,6 @@ class Choice(CommonModel):
     value = models.JSONField(
         help_text="Value to be processed in one of the descendants of BaseChoiceStrategy"
     )
-    elective_groups = models.ManyToManyField(
-        ElectiveGroup,
-        related_name="students_choices",
-        help_text="Elective groups attached to students after groups formation",
-    )
     application_window = models.ForeignKey(
         "elnure_config.ApplicationWindow",
         on_delete=models.SET_NULL,
@@ -138,6 +134,27 @@ class Choice(CommonModel):
 
     def __str__(self) -> str:
         return f"{self.student.get_full_name()} -- {self.study_year} study year"
+
+
+class ElectiveGroupStudentAssociation(CommonModel):
+    elective_group = models.ForeignKey(
+        ElectiveGroup, on_delete=models.CASCADE, related_name="student_associations"
+    )
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="elective_group_associations",
+    )
+    choice = models.ForeignKey(
+        Choice,
+        on_delete=models.SET_NULL,
+        related_name="final_distributions",
+        null=True,
+        help_text="Student choice which this asssociation is created for",
+    )
+
+    class Meta:
+        db_table = "elective_group_student_associations"
 
 
 class StrategySnapshot(models.Model):
