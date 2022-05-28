@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import environ
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,6 +22,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "constance",
+    "constance.backends.database",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -33,6 +36,7 @@ INSTALLED_APPS = [
     "elnure_common",
     "elnure_users",
     "elnure_core",
+    "elnure_config",
 ]
 
 MIDDLEWARE = [
@@ -67,6 +71,14 @@ WSGI_APPLICATION = "elnure_api.wsgi.application"
 
 
 DATABASES = {"default": env.db("DJANGO_DATABASE_URL")}
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "LOCATION": "127.0.0.1:11211",
+    }
+}
 
 
 # Password validation
@@ -136,3 +148,25 @@ GOOGLE_OAUTH2_SCOPE = " ".join(
         "https://www.googleapis.com/auth/userinfo.profile",
     ]
 )
+
+
+# Django Constance
+
+CONSTANCE_BACKEND = "constance.backends.database.DatabaseBackend"
+
+CONSTANCE_DATABASE_CACHE_BACKEND = "default"
+
+CONSTANCE_CONFIG = {
+    "STARTING_SEMESTER": (
+        3,
+        _(
+            "First semester which student choose elective courses for. Study years will be calculated automatically."
+        ),
+    ),
+    "ENDING_SEMESTER": (
+        8,
+        _(
+            "Last semester which student choose elective courses for. Study years will be calculated automatically."
+        ),
+    ),
+}

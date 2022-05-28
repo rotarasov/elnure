@@ -10,6 +10,9 @@ django-environ = "*"
 django-filter = "*"
 djangorestframework-simplejwt = "*"
 requests = "*"
+django-constance = {extras = ["database"], version = "*"}
+pymemcache = "*"
+pylibmc = "*"
 
 [dev-packages]
 powerline-shell = "*"

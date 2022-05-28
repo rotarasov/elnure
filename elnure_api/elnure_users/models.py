@@ -1,12 +1,26 @@
-from datetime import datetime
-from email.policy import default
-
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 
-from elnure_common.models import CommonModel, ActiveMixin, StudentGroupMixin
+from elnure_common.models import (
+    CommonModel,
+    ActiveMixin,
+    StudentGroupMixin,
+)
 from elnure_users.managers import UserManager, ActiveUserManager
+
+
+def validate_ratings(value):
+    if not isinstance(value, list):
+        raise ValidationError("Ratings should be a list of int values.")
+    if len(value) != 5:
+        raise ValidationError(
+            "5 ratings should be presented in the array(Use -1 to mark absense of rating for particular semester)."
+        )
+    if any(not isinstance(rating, float) for rating in value):
+        raise ValidationError("All values should be float.")
+    return value
 
 
 class User(ActiveMixin, CommonModel, AbstractUser):
@@ -19,11 +33,6 @@ class User(ActiveMixin, CommonModel, AbstractUser):
     patronymic = models.CharField(max_length=150, blank=True, null=True)
     academic_group = models.ForeignKey(
         "AcademicGroup", on_delete=models.RESTRICT, related_name="students", null=True
-    )
-    # TODO: Make rating contain default values for all semesters
-    ratings = models.JSONField(
-        default=[],
-        help_text="Student rating for multiple semesters ordered by semester",
     )
 
     @property

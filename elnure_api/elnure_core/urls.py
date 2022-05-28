@@ -10,7 +10,6 @@ router.register("blocks", views.BlockViewSet, basename="block")
 router.register(
     "elective-courses", views.ElectiveCourseViewSet, basename="elective-course"
 )
-router.register("appwindows", views.ApplicationWindowViewSet, basename="appwindow")
 router.register("choices", views.ChoiceViewSet, basename="choice")
 
 urlpatterns = router.urls

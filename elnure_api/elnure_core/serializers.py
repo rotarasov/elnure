@@ -3,6 +3,8 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 
+from elnure_config import models as config_models
+from elnure_config import serializers as config_serializers
 from elnure_core import models
 from elnure_common.serializers import ReadOnlyModelSerializer
 from elnure_users.serializers import UserSerializer
@@ -85,17 +87,11 @@ class ElectiveCourseSerializer(serializers.ModelSerializer):
         models.InstructorAssignment.objects.bulk_create(objs)
 
 
-class ApplicationWindowSerializer(serializers.ModelSerializer):
-    class Meta:
-        exclude = ["create_date", "update_date"]
-        model = models.ApplicationWindow
-
-
 class ChoiceSerializer(serializers.ModelSerializer):
     value = serializers.JSONField(required=True)
     application_window = serializers.PrimaryKeyRelatedField(
         allow_null=False,  # Disabling null values
-        queryset=models.ApplicationWindow.objects.all(),
+        queryset=config_models.ApplicationWindow.objects.all(),
     )
 
     def validate(self, attrs):
@@ -138,7 +134,7 @@ class ElectiveGroup(serializers.ModelSerializer):
 class RefChoiceSerializer(ReadOnlyModelSerializer):
     student = UserSerializer()
     elective_groups = ElectiveGroup(many=True, allow_empty=True)
-    application_window = ApplicationWindowSerializer()
+    application_window = config_serializers.ApplicationWindowSerializer()
 
     class Meta:
         exclude = ["create_date", "update_date"]
