@@ -9,28 +9,41 @@ def get_current_month_year() -> tuple[int, int]:
     return now.month, now.year
 
 
-def get_current_study_year(
-    current_month: int, current_year: int, start_year: int
-) -> int:
-    """
-    Taking current date and group's start year to calculate current study year
-    NOTE: It is important to pay attention to the season of the year
-    e.g. Group: SE-19-5
-    Season: spring 2022 => StudyYear.THIRD
-    Season: autumn 2022 => StudyYear.FOURTH
-    """
+# Study year -- Start year
+
+
+def get_current_study_year_by_start_year(start_year: int) -> int:
+    """Returning current study year of the group for particular start year"""
+    current_month, current_year = get_current_month_year()
     next_year = (
         current_month // 9
     )  # July and August are also considered as previous year
     return current_year - start_year + next_year
 
 
-def get_all_study_years(starting_semester: int, ending_semester: int):
+def get_start_year_by_current_study_year(study_year: int) -> int:
+    """Retrun study year by academic group start year"""
+    current_month, current_year = get_current_month_year()
+    next_year = (
+        current_month // 9
+    )  # July and August are also considered as previous year
+    return current_year - study_year + next_year
+
+
+# Semester -- Study year
+
+
+def get_study_years_by_semesters(semester_ids: list[int]) -> list[int]:
     """Returning list of study years for the semesters"""
-    return [
-        ceil(s / 2)
-        for s in range(starting_semester, ending_semester + ending_semester % 2 + 1, 2)
-    ]
+    return list(set([ceil(s / 2) for s in semester_ids]))
+
+
+def get_semesters_by_study_year(study_year: int) -> list[int]:
+    """Returning semester numbers for study year"""
+    return [study_year * 2 - 1, study_year * 2]
+
+
+# Elective Group
 
 
 class ElectiveGroupNameFactory:

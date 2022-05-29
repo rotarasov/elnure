@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from pathlib import Path
 
 import environ
@@ -156,17 +157,58 @@ CONSTANCE_BACKEND = "constance.backends.database.DatabaseBackend"
 
 CONSTANCE_DATABASE_CACHE_BACKEND = "default"
 
-CONSTANCE_CONFIG = {
-    "STARTING_SEMESTER": (
-        3,
-        _(
-            "First semester which student choose elective courses for. Study years will be calculated automatically."
-        ),
-    ),
-    "ENDING_SEMESTER": (
-        8,
-        _(
-            "Last semester which student choose elective courses for. Study years will be calculated automatically."
-        ),
-    ),
+CONSTANCE_ADDITIONAL_FIELDS = {
+    "strategy_select": [
+        "django.forms.fields.ChoiceField",
+        {"widget": "django.forms.Select", "choices": (("DEFAULT", "Default"))},
+    ],
+    "semesters_field": ["elnure_common.forms.fields.SemestersJSONField"],
 }
+
+
+CONSTANCE_CONFIG = OrderedDict(
+    [
+        (
+            "SEMESTERS",
+            (
+                3,
+                _("Semesters which should be formed elective groups for."),
+                "semesters_field",
+            ),
+        ),
+        (
+            "STRATEGY",
+            (
+                "DEFAULT",
+                _("Strategy to distribute students by elective courses."),
+                "strategy_select",
+            ),
+        ),
+        (
+            "MAX_NUMBER_OF_STUDENTS_IN_ELECTIVE_GROUP",
+            (
+                20,
+                _(
+                    "Maximum number of students to be in elective group during student distribution."
+                ),
+            ),
+        ),
+        (
+            "MIN_NUMBER_OF_STUDENTS_IN_ELECTIVE_GROUP",
+            (
+                5,
+                _(
+                    "Maximum number of students to be in elective group during student distribution. "
+                    "Also it is taken as a minimum number of students on the elective course."
+                ),
+            ),
+        ),
+        (
+            "MAX_NUMBER_OF_ELECTIVE_GROUPS",
+            (
+                5,
+                _("Maximum number of electve groups for elective course."),
+            ),
+        ),
+    ]
+)

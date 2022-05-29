@@ -4,7 +4,7 @@ from functools import cache
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
-from utils import get_current_month_year, get_current_study_year
+from utils import get_current_study_year_by_start_year
 
 
 class AuditMixin(models.Model):
@@ -48,8 +48,7 @@ class StudentGroupMixin(models.Model):
 
     @property
     def current_study_year(self):
-        current_month, current_year = get_current_month_year()
-        return get_current_study_year(current_month, current_year, self.start_year)
+        return get_current_study_year_by_start_year(self.start_year)
 
     @property
     def number(self):

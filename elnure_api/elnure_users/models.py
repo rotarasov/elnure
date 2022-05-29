@@ -8,19 +8,7 @@ from elnure_common.models import (
     ActiveMixin,
     StudentGroupMixin,
 )
-from elnure_users.managers import UserManager, ActiveUserManager
-
-
-def validate_ratings(value):
-    if not isinstance(value, list):
-        raise ValidationError("Ratings should be a list of int values.")
-    if len(value) != 5:
-        raise ValidationError(
-            "5 ratings should be presented in the array(Use -1 to mark absense of rating for particular semester)."
-        )
-    if any(not isinstance(rating, float) for rating in value):
-        raise ValidationError("All values should be float.")
-    return value
+from elnure_users.managers import UserManager, ActiveUserManager, StudentManager
 
 
 class User(ActiveMixin, CommonModel, AbstractUser):
@@ -40,14 +28,13 @@ class User(ActiveMixin, CommonModel, AbstractUser):
         through="elnure_core.ElectiveGroupStudentAssociation",
         help_text="Elective groups attached to the student after groups formation",
     )
+    is_admin = models.BooleanField(
+        default=False, help_text="Whether user should be admin"
+    )
 
     @property
     def is_active(self):
         return bool(self.active > 0)
-
-    @property
-    def is_admin(self):
-        return self.groups.exists(name="Adminsistrator")
 
     @property
     def is_staff(self):
@@ -76,8 +63,12 @@ class User(ActiveMixin, CommonModel, AbstractUser):
         db_table = "users"
         _default_manager = "objects"
 
-    def __str__(self) -> str:
-        return self.email
+
+class Student(User):
+    objects = StudentManager()
+
+    class Meta:
+        proxy = True
 
 
 class AcademicGroup(StudentGroupMixin, CommonModel):

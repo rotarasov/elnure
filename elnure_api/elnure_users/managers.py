@@ -41,3 +41,10 @@ class UserManager(BaseUserManager):
 
 class ActiveUserManager(ActiveManager, UserManager):
     pass
+
+
+class StudentManager(ActiveUserManager):
+    filter_lookups = {"is_admin": False}
+
+    def create_superuser(self, email, first_name, last_name, **extra_fields):
+        raise NotImplementedError()

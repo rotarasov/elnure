@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
@@ -26,6 +27,10 @@ class Block(CommonModel):
         on_delete=models.RESTRICT,
         help_text="Semester of block",
     )
+    must_choose = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        help_text="Number of elective courses that have to be choosen in block",
+    )
 
     class Meta:
         db_table = "blocks"
@@ -39,14 +44,8 @@ class ElectiveCourse(CommonModel):
         SESSION_EXAMINATION = "SESSION_EXAMINATION"
         GRADED_SEMESTER = "GRADED_SEMESTER"
 
-    name = models.CharField(max_length=50)
-    shortcut = models.CharField(max_length=10)
-    semester = models.ForeignKey(
-        "elnure_config.Semester",
-        related_name="elective_courses",
-        on_delete=models.RESTRICT,
-        help_text="Semester of elective course",
-    )
+    name = models.CharField(max_length=50, unique=True)
+    shortcut = models.CharField(max_length=10, unique=True)
     syllabus = models.CharField(max_length=300)
     capacity = models.IntegerField(null=True, validators=[MinValueValidator(1)])
     credits = models.IntegerField(validators=[MinValueValidator(1)])
@@ -54,15 +53,16 @@ class ElectiveCourse(CommonModel):
         PerformanceAssessment, default=PerformanceAssessment.GRADED_SEMESTER
     )
     block = models.ForeignKey(
-        Block, on_delete=models.SET_NULL, null=True, blank=True, related_name="courses"
+        Block,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="elective_courses",
     )
     instructors = models.ManyToManyField(
         Instructor,
         related_name="assigned_courses",
         through="InstructorAssignment",
-    )
-    is_professional = models.BooleanField(
-        default=True, help_text="Whether subject professional or humanitartian"
     )
 
     class Meta:
@@ -102,7 +102,6 @@ class ElectiveGroup(StudentGroupMixin, CommonModel):
 
 class Strategy(models.TextChoices):
     DEFAULT = "DEFAULT"
-    OPTIMIZED = "OPTIMIZED"
 
 
 class Choice(CommonModel):
@@ -160,15 +159,16 @@ class ElectiveGroupStudentAssociation(CommonModel):
 class StrategySnapshot(models.Model):
     """This entity represents strategy run result and snapshots of other entities"""
 
-    semesters_snapshot = models.JSONField(
-        help_text="Snapshot of semesters with blocks and elective courses for this strategy run"
-    )
-    application_window_snapshot = models.ForeignKey(
+    application_window = models.ForeignKey(
         "elnure_config.ApplicationWindow",
         on_delete=models.CASCADE,
         related_name="strategy_run_results",
     )
     strategy = ElnureEnumField(Strategy)
+    need_redistribution = models.JSONField(
+        default=list,
+        help_text="Students who are not automatically distributed and need to be manually added to result.",
+    )
     result = models.JSONField(
         help_text="List of elective groups for elective subjects with students"
     )
