@@ -1,0 +1,44 @@
+{% extends "admin/login.html" %}
+
+{% load i18n jazzmin static %}
+{% get_jazzmin_settings request as jazzmin_settings %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
+{% endblock %}
+
+{% block content %}
+    <p class="login-box-msg">{{ jazzmin_settings.welcome_sign }}</p>
+    {% if user.is_authenticated %}
+    <p class="errornote">
+        <div class="callout callout-danger">
+            <p>
+                {% blocktrans trimmed %}
+                    You are authenticated as {{ username }}, but are not authorized to
+                    access this page. Would you like to login to a different account?
+                {% endblocktrans %}
+            </p>
+        </div>
+    </p>
+    {% endif %}
+    <div id="googleBtnWrapper">
+        <input id="googleSSOBtn" type="image" src="{% static 'admin/img/btn_google_signin_light_focus_web.png' %}"
+            alt="Sign in via Google SSO" onclick="googleSSOOnClick('{{ GOOGLE_OAUTH2_CLIENT_ID }}', '{{ BASE_BACKEND_URL }}')"/>
+    </div>
+    {% url 'admin_password_reset' as password_reset_url %}
+    {% if password_reset_url %}
+    <div class="mb-3">
+        <div class="password-reset-link" style="text-align: center;">
+            <a href="{{ password_reset_url }}">
+                {% trans 'Forgotten your password or username?' %}
+            </a>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block extrajs %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'admin/js/google_sso_button.js' %}"></script>
+{% endblock %}

@@ -6,6 +6,7 @@ from elnure_users.models import User, AcademicGroup
 class RequestSerializer(serializers.Serializer):
     code = serializers.CharField(required=False)
     error = serializers.CharField(required=False)
+    state = serializers.CharField(required=False)
 
 
 class AcademicGroupSerializer(serializers.ModelSerializer):

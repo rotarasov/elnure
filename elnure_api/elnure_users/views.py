@@ -34,10 +34,8 @@ class GoogleLoginView(APIView):
     _user_redirect_url = None
 
     def get(self, request, *args, **kwargs):
-        if "r" in request.query_params:
+        if not ("code" in request.query_params or "error" in request.query_params):
             # Absence of query params implies effort to authenticate from DRF in browser
-            # TODO: Make correct behavior for DRF in browser
-            request.session["r"] = request.query_params["r"]
             params = urlencode(
                 {
                     "response_type": "code",
@@ -56,6 +54,7 @@ class GoogleLoginView(APIView):
         validated_data = request_serializer.validated_data
         code = validated_data.get("code")
         error = validated_data.get("error")
+        state = validated_data.get("state")
 
         if error or not code:
             params = urlencode({"error": error})
@@ -78,6 +77,10 @@ class GoogleLoginView(APIView):
 
         jwt_access_token = generate_access_token_for_user(user)
 
+        if state:
+            # If state is set then we have to redirect to another URL
+            return redirect(state)
+
         user_serializer = UserSerializer(user)
         response_serializer = LoginResponseSerializer(
             data={
@@ -85,11 +88,6 @@ class GoogleLoginView(APIView):
                 "access_token": jwt_access_token,
             }
         )
-
-        if "r" in request.session:
-            r = request.session["r"]
-            del request.session["r"]
-            return redirect(r)
 
         return Response(response_serializer.initial_data, status=200)
 

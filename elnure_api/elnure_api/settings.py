@@ -23,9 +23,10 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "jazzmin",
     "constance",
     "constance.backends.database",
-    "django.contrib.admin",
+    "elnure_api.apps.ElnureAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -55,7 +56,7 @@ ROOT_URLCONF = "elnure_api.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -128,6 +129,7 @@ USE_TZ = True
 
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -212,3 +214,11 @@ CONSTANCE_CONFIG = OrderedDict(
         ),
     ]
 )
+
+
+# Django-jazzmin admin panel
+
+JAZZMIN_SETTINGS = {
+    "site_logo": "admin/img/nure_se_logo.png",
+    "welcome_sign": _("Welcome back!"),
+}

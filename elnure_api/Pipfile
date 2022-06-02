@@ -13,6 +13,7 @@ requests = "*"
 django-constance = {extras = ["database"], version = "*"}
 pymemcache = "*"
 pylibmc = "*"
+django-jazzmin = "*"
 
 [dev-packages]
 powerline-shell = "*"
