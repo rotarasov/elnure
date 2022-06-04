@@ -1,9 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.forms.fields import JSONField
+from django.forms.widgets import TextInput
 from django.utils.translation import gettext_lazy as _
 
 
 class SemestersJSONField(JSONField):
+    widget = TextInput
+
     def clean(self, value):
         value = super().clean(value)
 

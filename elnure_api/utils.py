@@ -38,6 +38,10 @@ def get_study_years_by_semesters(semester_ids: list[int]) -> list[int]:
     return list(set([ceil(s / 2) for s in semester_ids]))
 
 
+def get_study_year_by_semester(semester_id: int) -> int:
+    return get_study_years_by_semesters([semester_id])[0]
+
+
 def get_semesters_by_study_year(study_year: int) -> list[int]:
     """Returning semester numbers for study year"""
     return [study_year * 2 - 1, study_year * 2]

@@ -8,7 +8,7 @@ from elnure_config.models import Semester, ApplicationWindow
 from elnure_core.models import (
     ElectiveCourse,
     Strategy,
-    StrategySnapshot,
+    RunSnapshot,
 )
 from elnure_core.strategies.base import BaseChoiceStrategy, StrategyError
 from elnure_users.models import Student
@@ -117,7 +117,7 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
             # Step 4: Form groups for this semester
             self.result[semester.id] = self.form_groups(student_bins, all_courses_by_id)
 
-        return StrategySnapshot.objects.create(
+        return RunSnapshot.objects.create(
             application_window=application_window,
             strategy=Strategy.DEFAULT,
             need_redistribution=self.need_redistribution,

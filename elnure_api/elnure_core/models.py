@@ -2,6 +2,7 @@ from email.policy import default
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
+from django.utils.translation import gettext_lazy as _
 
 from elnure_common.fields import ElnureEnumField
 from elnure_common.models import CommonModel, StudentGroupMixin
@@ -20,7 +21,9 @@ class Instructor(CommonModel):
 class Block(CommonModel):
     name = models.CharField(max_length=150)
     total_credits = models.IntegerField(null=True, validators=[MinValueValidator(1)])
-    capacity = models.IntegerField(null=True, validators=[MinValueValidator(1)])
+    capacity = models.IntegerField(
+        blank=True, null=True, validators=[MinValueValidator(1)]
+    )
     semester = models.ForeignKey(
         "elnure_config.Semester",
         related_name="blocks",
@@ -36,7 +39,7 @@ class Block(CommonModel):
         db_table = "blocks"
 
     def __str__(self) -> str:
-        return f"{self.name}({self.courses.count()})"
+        return f"{self.name}({self.semester_id})"
 
 
 class ElectiveCourse(CommonModel):
@@ -47,7 +50,9 @@ class ElectiveCourse(CommonModel):
     name = models.CharField(max_length=50, unique=True)
     shortcut = models.CharField(max_length=10, unique=True)
     syllabus = models.CharField(max_length=300)
-    capacity = models.IntegerField(null=True, validators=[MinValueValidator(1)])
+    capacity = models.IntegerField(
+        blank=True, null=True, validators=[MinValueValidator(1)]
+    )
     credits = models.IntegerField(validators=[MinValueValidator(1)])
     performance_assessment = ElnureEnumField(
         PerformanceAssessment, default=PerformanceAssessment.GRADED_SEMESTER
@@ -148,6 +153,7 @@ class ElectiveGroupStudentAssociation(CommonModel):
         Choice,
         on_delete=models.SET_NULL,
         related_name="final_distributions",
+        blank=True,
         null=True,
         help_text="Student choice which this asssociation is created for",
     )
@@ -156,7 +162,7 @@ class ElectiveGroupStudentAssociation(CommonModel):
         db_table = "elective_group_student_associations"
 
 
-class StrategySnapshot(models.Model):
+class RunSnapshot(CommonModel):
     """This entity represents strategy run result and snapshots of other entities"""
 
     application_window = models.ForeignKey(
@@ -174,4 +180,7 @@ class StrategySnapshot(models.Model):
     )
 
     class Meta:
-        db_table = "strategy_snapshots"
+        db_table = "run_snapshots"
+
+    def __str__(self):
+        return _(f"App window: {self.application_window}. Ran at: {self.create_date}")

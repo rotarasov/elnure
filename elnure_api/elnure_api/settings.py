@@ -2,7 +2,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 import environ
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,9 +23,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "jazzmin",
     "constance",
     "constance.backends.database",
+    "jazzmin",
     "elnure_api.apps.ElnureAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -162,9 +162,9 @@ CONSTANCE_DATABASE_CACHE_BACKEND = "default"
 CONSTANCE_ADDITIONAL_FIELDS = {
     "strategy_select": [
         "django.forms.fields.ChoiceField",
-        {"widget": "django.forms.Select", "choices": (("DEFAULT", "Default"))},
+        {"widget": "django.forms.Select", "choices": (("DEFAULT", "Default"),)},
     ],
-    "semesters_field": ["elnure_common.forms.fields.SemestersJSONField"],
+    "semesters_field": ["elnure_common.admin.forms.fields.SemestersJSONField", {}],
 }
 
 
@@ -173,7 +173,7 @@ CONSTANCE_CONFIG = OrderedDict(
         (
             "SEMESTERS",
             (
-                3,
+                [3, 4, 5, 6, 7, 8],
                 _("Semesters which should be formed elective groups for."),
                 "semesters_field",
             ),

@@ -1,6 +1,9 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 from elnure_common.models import CommonModel
+
+DATE_FORMAT = "%d %b %Y"
 
 
 class Semester(CommonModel):
@@ -16,7 +19,7 @@ class Semester(CommonModel):
         db_table = "semesters"
 
     def __str__(self) -> str:
-        return f"Semester {self.id}"
+        return _(f"Semester #{self.id}")
 
 
 class ApplicationWindow(CommonModel):
@@ -31,4 +34,6 @@ class ApplicationWindow(CommonModel):
         db_table = "application_windows"
 
     def __str__(self) -> str:
-        return f"#{self.id}: {self.start_date} - {self.end_date}"
+        return _(
+            f"#{self.id}: {self.start_date.strftime(DATE_FORMAT)} - {self.end_date.strftime(DATE_FORMAT)}"
+        )

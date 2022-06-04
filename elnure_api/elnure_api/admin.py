@@ -14,3 +14,6 @@ class ElnureAdminSite(admin.AdminSite):
         }
         extra_context = extra_context or {}
         return super().login(request, {**extra_context, **google_auth_context})
+
+
+elnure_admin_site = ElnureAdminSite(name="elnure_admin")
