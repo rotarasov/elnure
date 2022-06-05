@@ -16,5 +16,5 @@ class SemestersJSONField(JSONField):
     def validate(self, value):
         super().validate(value)
 
-        if isinstance(value, list) or not all(isinstance(s, int) for s in value):
+        if not isinstance(value, list) or not all(isinstance(s, int) for s in value):
             raise ValidationError(_("Semesters should be a list of ints."))
