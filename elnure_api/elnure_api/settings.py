@@ -2,6 +2,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 import environ
+from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -221,4 +222,12 @@ CONSTANCE_CONFIG = OrderedDict(
 JAZZMIN_SETTINGS = {
     "site_logo": "admin/img/nure_se_logo.png",
     "welcome_sign": _("Welcome back!"),
+    "custom_links": {
+        "elnure_users": [
+            {
+                "name": _("Import user mappings"),
+                "url": reverse_lazy("admin:import-user-mappings"),
+            }
+        ]
+    },
 }
