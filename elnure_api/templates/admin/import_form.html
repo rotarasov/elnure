@@ -1,0 +1,84 @@
+{% extends 'admin/change_form.html' %}
+
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrahead %}{{ block.super }}
+<script src="{% url 'admin:jsi18n' %}"></script>
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb float-sm-right">
+    <li class="breadcrumb-item"><a href="{% url 'admin:index' %}"><i class="fa fa-tachometer-alt"></i> {% trans 'Home' %}</a></li>
+    <li class="breadcrumb-item active">
+        {{ breadcrumb_node }}
+    </li>
+</ol>
+{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block bodyclass %}{{ action_class }}{% endblock %}
+
+{% block content %}
+<div id="content-main" class="col-12">
+    <form enctype="multipart/form-data" method="post" id="import_form" novalidate>
+        {% csrf_token %}
+        
+        {% if errors or form.errors %}
+            <div class="callout callout-danger">
+                {% if errors|length == 1 or form.errors|length == 1 %}
+                    {% trans "Please correct the error below." %}
+                {% else %}
+                    {% trans "Please correct the errors below." %}
+                {% endif %}
+            </div>
+            {% for error in errors %}
+                <div class="alert alert-danger alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    <i class="icon fa fa-ban"></i>{{ error|capfirst }}
+                </div>
+            {% endfor %}
+            {% for field, errors in form.errors.items %}
+                <div class="alert alert-danger alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    <i class="icon fa fa-ban"></i>{{ field|capfirst }}: {% for error in errors %}{{ error|capfirst }}; {% endfor %}
+                </div>
+            {% endfor %}
+        {% endif %}
+        <div class="row">
+            <div class="col-12 col-lg-9">
+                <div class="card card-primary card-outline">
+                <div class="card-header">
+                        <div class="card-title">
+                            {% blocktrans %}{{ action }}{% endblocktrans %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <input type="file" name="file"">
+                    </div>
+                </div>
+            </div>
+    
+            <div class="col-12 col-lg-3">
+                <div id="jazzy-actions" class="{{ jazzmin_ui.actions_classes }}">
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-edit"></i>
+                                {% trans 'Actions' %}
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <input type="submit" value="{% trans 'Save' %}" class="btn {{ jazzmin_ui.button_classes.success }} form-control" name="_save">
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
