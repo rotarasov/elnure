@@ -28,20 +28,29 @@ class ApplicationWindowAdmin(admin.ModelAdmin):
 
         if "_save_and_run" in request.POST:
             try:
-                run_strategy(obj)
+                run_snapshot = run_strategy(obj)
             except StrategyError as exc:
                 self.message_user(
                     request, f"Algorithm error: {str(exc)}", messages.ERROR
                 )
 
                 opts = self.model._meta
-                redirect_url = reverse(
-                    f"admin:{opts.app_label}_{opts.model_name}_change",
-                    args=(obj.pk,),
-                    current_app=self.admin_site.name,
+                return HttpResponseRedirect(
+                    reverse(
+                        f"admin:{opts.app_label}_{opts.model_name}_change",
+                        args=(obj.pk,),
+                        current_app=self.admin_site.name,
+                    )
                 )
 
-                return HttpResponseRedirect(redirect_url)
+            opts = run_snapshot._meta
+            return HttpResponseRedirect(
+                reverse(
+                    f"admin:{opts.app_label}_{opts.model_name}_change",
+                    args=(run_snapshot.id,),
+                    current_app=self.admin_site.name,
+                )
+            )
 
         return response
 

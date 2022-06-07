@@ -98,6 +98,9 @@ class RunSnapshotAdmin(admin.ModelAdmin):
         "status",
     ]
 
+    list_display = ["application_window", "strategy", "status"]
+    ordering = ["-application_window__update_date", "-update_date"]
+
     formfield_overrides = {
         django_models.JSONField: {
             "widget": JSONEditorWidget(width="70%", height="350px")
@@ -123,5 +126,10 @@ class RunSnapshotAdmin(admin.ModelAdmin):
                 )
 
                 return HttpResponseRedirect(redirect_url)
+
+            self.message_user(
+                request,
+                f"Elective groups are generated for application window: {str(obj.application_window)}",
+            )
 
         return response
