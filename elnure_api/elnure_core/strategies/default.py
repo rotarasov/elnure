@@ -1,4 +1,3 @@
-import json
 from collections import defaultdict
 
 from constance import config

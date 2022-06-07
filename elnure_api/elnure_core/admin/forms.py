@@ -1,7 +1,11 @@
+import re
+
 from django import forms
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 
+from elnure_common.json_schema import validate_schema, DefaultStrategySchemas
 from elnure_core import models
 
 
@@ -10,6 +14,11 @@ class BlockForm(forms.ModelForm):
         help_text=_(
             "Number of coureses to choose for this block or asterisk(*) to choose all"
         ),
+        validators=[
+            RegexValidator(
+                r"(\*|\d+)", _("Must choose should be either asterisk(*) or a number.")
+            ),
+        ],
     )
     elective_courses = forms.ModelMultipleChoiceField(
         models.ElectiveCourse.objects.all(), required=False
@@ -24,13 +33,13 @@ class BlockForm(forms.ModelForm):
 
             if len(self.initial["elective_courses"]) == self.instance.must_choose:
                 self.initial["must_choose"] = self.ALL_COURSES
-            else:
-                self.initial["must_choose"] = str(self.instance.must_choose)
+            elif self.instance.must_choose:
+                self.initial["must_choose"] = self.instance.must_choose
 
     def clean(self):
-        must_choose = self.cleaned_data["must_choose"]
-        elective_courses = self.cleaned_data["elective_courses"]
-        total_credits = self.cleaned_data["total_credits"]
+        must_choose = self.cleaned_data.get("must_choose")
+        elective_courses = self.cleaned_data.get("elective_courses")
+        total_credits = self.cleaned_data.get("total_credits")
 
         elective_course_credits = 0
         if must_choose == self.ALL_COURSES:
@@ -38,7 +47,7 @@ class BlockForm(forms.ModelForm):
 
             for elective_course in elective_courses:
                 elective_course_credits += elective_course.credits
-        else:
+        elif must_choose:
             self.cleaned_data["must_choose"] = int(must_choose)
 
             if int(must_choose) > len(elective_courses):
@@ -106,15 +115,39 @@ class ElectiveGroupStudentAssociationInlineForm(forms.ModelForm):
 
 class RunSnapshotForm(forms.ModelForm):
     def clean(self):
-        application_window = self.cleaned_data["application_window"]
+        application_window = self.cleaned_data.get("application_window")
         status = self.cleaned_data["status"]
+        need_redistribution = self.cleaned_data.get("need_redistribution", {})
+        result = self.cleaned_data.get("result", {})
 
-        if status == models.RunSnapshot.Status.ACCEPTED:
-            already_exists = models.RunSnapshot.objects.filter(
+        if status == models.RunSnapshot.Status.ACCEPTED and application_window:
+            accepted_snapshots = models.RunSnapshot.objects.filter(
                 application_window=application_window, status=status
-            ).exists()
+            )
 
+            if self.instance.id:
+                accepted_snapshots = accepted_snapshots.exclude(id=self.instance.id)
+
+            already_exists = accepted_snapshots.exists()
             if already_exists:
                 raise ValidationError(
                     _("Snapshot is already accepted for this application window.")
                 )
+
+        validate_schema(
+            need_redistribution,
+            DefaultStrategySchemas.NEED_REDISTRIBUTION,
+            exc_cls=ValidationError,
+            exc_msg=_(
+                f"need_redistribution has incorrect structure. Schema: {DefaultStrategySchemas.NEED_REDISTRIBUTION}"
+            ),
+        )
+
+        validate_schema(
+            result,
+            DefaultStrategySchemas.RESULT,
+            exc_cls=ValidationError,
+            exc_msg=_(
+                f"result has incorrect structure. Schema: {DefaultStrategySchemas.RESULT}"
+            ),
+        )
