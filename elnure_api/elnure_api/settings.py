@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "rest_framework_simplejwt",
+    "django_json_widget",
     "elnure_common",
     "elnure_users",
     "elnure_core",

@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 
 from constance import config
@@ -12,7 +13,8 @@ from elnure_core.models import (
 )
 from elnure_core.strategies.base import BaseChoiceStrategy, StrategyError
 from elnure_users.models import Student
-from elnure_api.utils import (
+from elnure_users.serializers import UserForSnapshotSerializer
+from utils import (
     ElectiveGroupNameFactory,
     get_start_year_by_current_study_year,
     get_study_years_by_semesters,
@@ -41,24 +43,46 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
     ...     {"block_id": <block_id:int>, "elective_course_ids": [<elective_course_id:int>, ...]},
     ...     {"block_id": <block_id:int>, "elective_course_ids": [<elective_course_id:int>, ...]},
     ... ]
+    Generated snapshot result will have the following structure:
+    >>> {
+    ...    "<elective_course_id>": {
+    ...        "<elective_group_name 1>": [
+    ...            <Student aneksin.vasil@nure.ua>,  # Student model
+    ...            ...
+    ...        ],
+    ...        "<elective_group_name 2>": [
+    ...            ...
+    ...        ],
+    ...        ...
+    ...    },
+    ... }
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        application_window: ApplicationWindow = None,
+        run_snapshot: RunSnapshot = None,
+    ):
+        self.application_window = application_window
+        self.run_snapshot = run_snapshot
+
         # To keep track of students which need redistribution with the reason
-        self.need_redistribution = []
+        self.need_redistribution = {}
 
         # Result of the distribution and group formations
         self.result = {}
 
     @transaction.atomic
-    def handle(self, application_window: ApplicationWindow):
-        semesters = (
-            Semester.objects.all()
-            .prefetch_related("blocks", "elective_courses")
-            .in_bulk()
-        )
+    def run(self) -> RunSnapshot:
+        if self.run_snapshot:
+            return self.run_snapshot
 
-        if len(semesters) <= len(config.SEMESTERS):
+        if not self.application_window:
+            raise ValueError("Application window should not be None when handler runs.")
+
+        semesters = Semester.objects.all().prefetch_related("blocks").in_bulk()
+
+        if len(semesters) < len(config.SEMESTERS):
             raise StrategyError(
                 ErrorMessage.invalid_semesters_num.format(
                     num_of_semesters=len(config.SEMESTERS)
@@ -66,8 +90,10 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
             )
 
         study_years = get_study_years_by_semesters(config.SEMESTERS)
+        # We subtract from stud year one to have students from previous year who
+        # apply for the next year
         start_years = [
-            get_start_year_by_current_study_year(study_year)
+            get_start_year_by_current_study_year(study_year - 1)
             for study_year in study_years
         ]
         all_students = list(
@@ -77,7 +103,7 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
         all_courses_by_id = ElectiveCourse.objects.all().in_bulk()
 
         choices = (
-            application_window.choices.all()
+            self.application_window.choices.all()
             .order_by("-update_date", "-create_date")
             .select_related("student__academic_group")
         )
@@ -117,12 +143,14 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
             # Step 4: Form groups for this semester
             self.result[semester.id] = self.form_groups(student_bins, all_courses_by_id)
 
-        return RunSnapshot.objects.create(
-            application_window=application_window,
+        self.run_snapshot = RunSnapshot.objects.create(
+            application_window=self.application_window,
             strategy=Strategy.DEFAULT,
             need_redistribution=self.need_redistribution,
             result=self.result,
         )
+
+        return self.run_snapshot
 
     def generate_student_bins(self, choices):
         """Student bins are all students applied for particular elective course"""
@@ -181,7 +209,7 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
         # We should sort students by academic group and full name
         for students in student_bins.values():
             students.sort(
-                lambda s: (
+                key=lambda s: (
                     s.academic_group.name,
                     s.last_name,
                     s.first_name,
@@ -205,7 +233,7 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
                 )
 
                 if students_num <= max_students_num:
-                    group_students_num = students_num / num_of_groups
+                    group_students_num = students_num // num_of_groups
                     remainded_students_num = students_num % num_of_groups
 
                     group_names = group_factory.generate_many(num_of_groups)
@@ -221,10 +249,46 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
                             start_idx += remainded_students_num
 
                         group = students[start_idx:end_idx]
-                        formed_groups[elective_course_id][group_name] = group
+                        formed_groups[elective_course_id][group_name] = [
+                            self.serialize_user(student) for student in group
+                        ]
                     break
 
         return formed_groups
+
+    def serialize_user(self, user):
+        return {"email": user.email, "academic_group": user.academic_group.name}
+
+    @transaction.atomic
+    def save_results(self):
+        if not self.run_snapshot:
+            try:
+                self.run_snapshot = RunSnapshot.objects.filter(
+                    status=RunSnapshot.Status.ACCEPTED
+                ).latest("update_date")
+            except RunSnapshot.DoesNotExist:
+                raise StrategyError(
+                    _("No run snapshot was found for this application window.")
+                )
+
+        assert self.run_snapshot.status == RunSnapshot.Status.ACCEPTED
+        assert self.run_snapshot.need_redistribution == []
+
+        choices_by_student = self.run_snapshot.application_window.choices.all().in_bulk(
+            field_name="student_id"
+        )
+        for elective_course_id, groups in self.run_snapshot.results.items():
+            for group_name, students in groups.items():
+                elective_group = ElectiveGroup.objects.get_or_create(
+                    name=group_name, elective_course_id=elective_course_id
+                )
+
+                for student in students:
+                    ElectiveGroupStudentAssociation.objects.get_or_create(
+                        elective_group=elective_group,
+                        student=student,
+                        choice=choices_by_student[student.id],
+                    )
 
     # def add_students_without_choice(self, student_bins, students_without_choice, semester):
     #     meta_info = {}

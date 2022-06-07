@@ -57,7 +57,7 @@ class ElectiveGroupNameFactory:
     """
 
     DEFAULT_PREFIX = "ПЗПІ"
-    DEFAULT_TEMPLATE = "{prefix}[{shorcut}]-{start_year}-{index}"
+    DEFAULT_TEMPLATE = "{prefix}[{shortcut}]-{start_year}-{index}"
 
     def __init__(
         self,

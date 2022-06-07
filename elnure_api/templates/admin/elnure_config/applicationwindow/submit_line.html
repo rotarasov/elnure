@@ -1,0 +1,10 @@
+{% extends 'admin/submit_line.html' %}
+
+{% load i18n %}
+
+{% block extra-actions %}
+<hr/>
+<div class="form-group">
+    <input type="submit" class="btn btn-primary form-control" value="{% trans 'Save and run distribution algorithm' %}" name="_save_and_run">
+</div>
+{% endblock %}
