@@ -6,6 +6,7 @@ from elnure_common.admin import forms as common_forms
 from elnure_core import models as core_models
 from elnure_core.admin import forms as core_forms
 from elnure_users import models
+from elnure_users.admin import forms
 
 
 class ElectiveGroupInlineAdmin(admin.TabularInline):
@@ -20,15 +21,20 @@ class ElectiveGroupInlineAdmin(admin.TabularInline):
 class ChoiceInlineAdmin(admin.StackedInline):
     model = core_models.Choice
     fields = ["semester", "value", "application_window", "strategy"]
+    ordering = ["-semester"]
     extra = 1
 
 
 @admin.register(models.User, site=elnure_admin_site)
 class UserAdmin(admin.ModelAdmin):
+    form = forms.UserForm
+    readonly_fields = ["id"]
     fields = [
+        "id",
         "active",
         "email",
         "password",
+        "changed_password",
         "first_name",
         "last_name",
         "patronymic",
@@ -63,5 +69,6 @@ class StudentInlineAdmin(admin.TabularInline):
 @admin.register(models.AcademicGroup, site=elnure_admin_site)
 class AcademicGroupAdmin(admin.ModelAdmin):
     form = common_forms.StudentGroupForm
-    fields = ["name"]
+    readonly_fields = ["id"]
+    fields = ["id", "name"]
     inlines = [StudentInlineAdmin]

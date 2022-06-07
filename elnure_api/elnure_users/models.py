@@ -20,7 +20,11 @@ class User(ActiveMixin, CommonModel, AbstractUser):
     last_name = models.CharField(max_length=150)
     patronymic = models.CharField(max_length=150, blank=True, null=True)
     academic_group = models.ForeignKey(
-        "AcademicGroup", on_delete=models.RESTRICT, related_name="students", null=True
+        "AcademicGroup",
+        on_delete=models.RESTRICT,
+        related_name="students",
+        blank=True,
+        null=True,
     )
     elective_groups = models.ManyToManyField(
         "elnure_core.ElectiveGroup",

@@ -41,6 +41,13 @@ class BlockForm(forms.ModelForm):
         else:
             self.cleaned_data["must_choose"] = int(must_choose)
 
+            if int(must_choose) > len(elective_courses):
+                raise ValidationError(
+                    _(
+                        "Block's number of courses to choose should not be higher than actual number of elective courses."
+                    )
+                )
+
             distinct_credits = set(
                 elective_course.credits for elective_course in elective_courses
             )
@@ -95,3 +102,23 @@ class ElectiveGroupStudentAssociationInlineForm(forms.ModelForm):
                         f"Student already enrolled in maximum number of elective groups for the semester {semester_id}"
                     )
                 )
+
+
+class RunSnapshotForm(forms.ModelForm):
+    def clean(self):
+        application_window = self.cleaned_data["application_window"]
+        status = self.cleaned_data["status"]
+        need_redistribution = self.cleaned_data["need_redistribution"]
+
+        if status == models.RunSnapshot.Status.ACCEPTED:
+            already_exists = models.RunSnapshot.objects.filter(
+                application_window=application_window, status=status
+            ).exists()
+
+            if already_exists:
+                raise ValidationError(
+                    _("Snapshot is already accepted for this application window.")
+                )
+
+        if not all(students == [] for students in need_redistribution.values()):
+            raise ValidationError(_("All students should be redistribtured"))

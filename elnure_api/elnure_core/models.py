@@ -2,7 +2,6 @@ from email.policy import default
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from django.utils.translation import gettext_lazy as _
 
 from elnure_common.fields import ElnureEnumField
 from elnure_common.models import CommonModel, StudentGroupMixin
@@ -90,7 +89,7 @@ class InstructorAssignment(CommonModel):
         db_table = "instructor_assignment"
 
     def __str__(self) -> str:
-        return f"{self.elective_course.shortcut} -- {self.instructor.full_name} as {self.position}"
+        return f"{self.to_elective_course.shortcut} -- {self.instructor.full_name} as {self.position}"
 
 
 class ElectiveGroup(StudentGroupMixin, CommonModel):
@@ -137,7 +136,7 @@ class Choice(CommonModel):
         unique_together = ["student", "application_window"]
 
     def __str__(self) -> str:
-        return f"{self.student.get_full_name()} -- {self.study_year} study year"
+        return f"{self.student.get_full_name()} -- Semester {self.semester_id}"
 
 
 class ElectiveGroupStudentAssociation(CommonModel):
@@ -160,10 +159,15 @@ class ElectiveGroupStudentAssociation(CommonModel):
 
     class Meta:
         db_table = "elective_group_student_associations"
+        unique_together = ["elective_group", "student", "choice"]
 
 
 class RunSnapshot(CommonModel):
     """This entity represents strategy run result and snapshots of other entities"""
+
+    class Status(models.TextChoices):
+        ACCEPTED = "ACCEPTED"
+        DRAFT = "DRAFT"
 
     application_window = models.ForeignKey(
         "elnure_config.ApplicationWindow",
@@ -178,9 +182,10 @@ class RunSnapshot(CommonModel):
     result = models.JSONField(
         help_text="List of elective groups for elective subjects with students"
     )
+    status = ElnureEnumField(Status, default=Status.DRAFT)
 
     class Meta:
         db_table = "run_snapshots"
 
     def __str__(self):
-        return _(f"App window: {self.application_window}. Ran at: {self.create_date}")
+        return f"App window: {self.application_window}. Ran at: {self.create_date}"

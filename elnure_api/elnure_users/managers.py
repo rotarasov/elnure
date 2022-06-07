@@ -31,12 +31,9 @@ class UserManager(BaseUserManager):
         return self._create_user(email, first_name, last_name, **extra_fields)
 
     def create_superuser(self, email, first_name, last_name, **extra_fields):
-        superuser = self._create_user(email, first_name, last_name, **extra_fields)
-        try:
-            superuser.groups.add(Group.objects.get(name="Administrator"))
-        except Group.DoesNotExist:
-            raise Group.DoesNotExist("No Administrator group exists")
-        return superuser
+        return self._create_user(
+            email, first_name, last_name, is_admin=True, **extra_fields
+        )
 
 
 class ActiveUserManager(ActiveManager, UserManager):
