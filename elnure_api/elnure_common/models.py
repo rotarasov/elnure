@@ -1,10 +1,7 @@
 from datetime import datetime
-from functools import cache
 
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator
 from django.db import models
-
-from utils import get_current_study_year_by_start_year
 
 
 class AuditMixin(models.Model):
@@ -32,24 +29,6 @@ class StudentGroupMixin(models.Model):
     start_year = models.PositiveIntegerField(
         help_text="Year when student group was formed",
     )
-
-    @cache
-    def _get_splitted_group(self):
-        """
-        SE-18-5 => ("SE", "18", "5")
-        """
-        return self.name.split("-")
-
-    def calculate_start_year(self):
-        row_year = self._get_splitted_group()[1]
-        return datetime.strptime(row_year, "%y").year
-
-    def calculate_current_study_year(self):
-        return get_current_study_year_by_start_year(self.start_year)
-
-    @property
-    def number(self):
-        return int(self._get_splitted_group()[2])
 
     class Meta:
         abstract = True

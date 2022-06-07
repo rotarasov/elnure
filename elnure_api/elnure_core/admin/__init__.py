@@ -1,5 +1,7 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db import models as django_models
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django_json_widget.widgets import JSONEditorWidget
 
@@ -7,7 +9,7 @@ from elnure_api.admin import elnure_admin_site
 from elnure_common.admin import forms as common_forms
 from elnure_core import models
 from elnure_core.admin import forms
-from elnure_core.strategies import make_run_snapshot_permanent
+from elnure_core.strategies import make_run_snapshot_permanent, StrategyError
 
 
 @admin.register(models.Instructor, site=elnure_admin_site)
@@ -86,7 +88,7 @@ class ElectiveGroupAdmin(admin.ModelAdmin):
 @admin.register(models.RunSnapshot, site=elnure_admin_site)
 class RunSnapshotAdmin(admin.ModelAdmin):
     form = forms.RunSnapshotForm
-    readonly_fields = ["id"]
+    readonly_fields = ["id", "strategy"]
     fields = [
         "id",
         "application_window",
@@ -106,6 +108,20 @@ class RunSnapshotAdmin(admin.ModelAdmin):
         response = super().response_change(request, obj)
 
         if "_save_and_make_permanent" in request.POST:
-            make_run_snapshot_permanent(obj)
+            try:
+                make_run_snapshot_permanent(obj)
+            except StrategyError as exc:
+                self.message_user(
+                    request, f"Permanent save error: {str(exc)}", messages.ERROR
+                )
+
+                opts = self.model._meta
+                redirect_url = reverse(
+                    f"admin:{opts.app_label}_{opts.model_name}_change",
+                    args=(obj.pk,),
+                    current_app=self.admin_site.name,
+                )
+
+                return HttpResponseRedirect(redirect_url)
 
         return response

@@ -47,7 +47,22 @@ def get_semesters_by_study_year(study_year: int) -> list[int]:
     return [study_year * 2 - 1, study_year * 2]
 
 
-# Elective Group
+# Group name
+
+
+def _get_splitted_group(group_name: str):
+    """
+    SE-18-5 => ("SE", "18", "5")
+    """
+    return group_name.split("-")
+
+
+def get_start_year_by_group_name(group_name: str):
+    row_year = _get_splitted_group(group_name)[1]
+    return datetime.strptime(row_year, "%y").year
+
+
+# Group name factory
 
 
 class ElectiveGroupNameFactory:

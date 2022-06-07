@@ -15,6 +15,7 @@ pymemcache = "*"
 pylibmc = "*"
 django-jazzmin = "*"
 django-json-widget = "*"
+jsonschema = "*"
 
 [dev-packages]
 powerline-shell = "*"

@@ -5,19 +5,25 @@ from constance import config
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 
+from elnure_common.json_schema import (
+    validate_schema,
+    DefaultStrategySchemas,
+)
 from elnure_config.models import Semester, ApplicationWindow
 from elnure_core.models import (
     ElectiveCourse,
+    ElectiveGroup,
+    ElectiveGroupStudentAssociation,
     Strategy,
     RunSnapshot,
 )
 from elnure_core.strategies.base import BaseChoiceStrategy, StrategyError
 from elnure_users.models import Student
-from elnure_users.serializers import UserForSnapshotSerializer
 from utils import (
     ElectiveGroupNameFactory,
     get_start_year_by_current_study_year,
     get_study_years_by_semesters,
+    get_start_year_by_group_name,
 )
 
 
@@ -58,6 +64,23 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
     ... }
     """
 
+    class StudentSerializer:
+        """Specification how student is serialized/deserialized for RunSnapshot"""
+
+        def __init__(self):
+            self.all_students = None
+
+        def serialize(self, student):
+            return {
+                "email": student.email,
+                "academic_group": student.academic_group.name,
+            }
+
+        def deserialize(self, value, update_cache=False):
+            if not self.all_students or update_cache:
+                self.all_students = Student.objects.all().in_bulk(field_name="email")
+            return self.all_students[value["email"]]
+
     def __init__(
         self,
         application_window: ApplicationWindow = None,
@@ -66,19 +89,19 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
         self.application_window = application_window
         self.run_snapshot = run_snapshot
 
-        # To keep track of students which need redistribution with the reason
-        self.need_redistribution = {}
-
-        # Result of the distribution and group formations
-        self.result = {}
+        self.student_serializer = self.StudentSerializer()
 
     @transaction.atomic
     def run(self) -> RunSnapshot:
         if self.run_snapshot:
             return self.run_snapshot
 
+        self.run_snapshot = RunSnapshot(strategy=Strategy.DEFAULT)
+
         if not self.application_window:
             raise ValueError("Application window should not be None when handler runs.")
+
+        self.run_snapshot.application_window = self.application_window
 
         semesters = Semester.objects.all().prefetch_related("blocks").in_bulk()
 
@@ -115,7 +138,7 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
                 )
 
             semester = semesters[semester_id]
-            self.need_redistribution[semester_id] = []
+            self.run_snapshot.need_redistribution[semester_id] = []
 
             # Step 1: Generate student bins for each elective course
             semester_choices = [
@@ -141,14 +164,11 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
                 self.log_choiceless_students(choiceless_students, semester)
 
             # Step 4: Form groups for this semester
-            self.result[semester.id] = self.form_groups(student_bins, all_courses_by_id)
+            self.run_snapshot.result[semester.id] = self.form_groups(
+                student_bins, all_courses_by_id
+            )
 
-        self.run_snapshot = RunSnapshot.objects.create(
-            application_window=self.application_window,
-            strategy=Strategy.DEFAULT,
-            need_redistribution=self.need_redistribution,
-            result=self.result,
-        )
+        self.run_snapshot.save()
 
         return self.run_snapshot
 
@@ -256,9 +276,6 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
 
         return formed_groups
 
-    def serialize_user(self, user):
-        return {"email": user.email, "academic_group": user.academic_group.name}
-
     @transaction.atomic
     def save_results(self):
         if not self.run_snapshot:
@@ -271,24 +288,46 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
                     _("No run snapshot was found for this application window.")
                 )
 
-        assert self.run_snapshot.status == RunSnapshot.Status.ACCEPTED
-        assert self.run_snapshot.need_redistribution == []
-
-        choices_by_student = self.run_snapshot.application_window.choices.all().in_bulk(
-            field_name="student_id"
-        )
-        for elective_course_id, groups in self.run_snapshot.results.items():
-            for group_name, students in groups.items():
-                elective_group = ElectiveGroup.objects.get_or_create(
-                    name=group_name, elective_course_id=elective_course_id
+        if self.run_snapshot.status != RunSnapshot.Status.ACCEPTED:
+            raise StrategyError(
+                _(
+                    "Status of run snapshot should be ACCEPTED before making elective groups permanent."
                 )
+            )
 
-                for student in students:
-                    ElectiveGroupStudentAssociation.objects.get_or_create(
-                        elective_group=elective_group,
-                        student=student,
-                        choice=choices_by_student[student.id],
+        validate_schema(
+            self.run_snapshot.need_redistribution,
+            DefaultStrategySchemas.EMPTY_NEED_REDISTRIBUTION,
+            exc_cls=StrategyError,
+            exc_msg=_(
+                "All students should be redistributed before making elective groups permanent."
+            ),
+        )
+
+        choices_by_student = {}
+        for choice in self.run_snapshot.application_window.choices.all():
+            choices_by_student[choice.student_id] = choice
+
+        for _semester_id_key, elecitve_courses in self.run_snapshot.result.items():
+            for elective_course_id_key, groups in elecitve_courses.items():
+                elective_course_id = int(elective_course_id_key)
+
+                for group_name, serialized_students in groups.items():
+                    elective_group, _created = ElectiveGroup.objects.get_or_create(
+                        name=group_name,
+                        elective_course_id=elective_course_id,
+                        start_year=get_start_year_by_group_name(group_name),
                     )
+
+                    for serialized_student in serialized_students:
+                        student = self.student_serializer.deserialize(
+                            serialized_student
+                        )
+                        ElectiveGroupStudentAssociation.objects.get_or_create(
+                            elective_group=elective_group,
+                            student=student,
+                            choice=choices_by_student[student.id],
+                        )
 
     # def add_students_without_choice(self, student_bins, students_without_choice, semester):
     #     meta_info = {}

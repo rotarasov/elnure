@@ -176,11 +176,13 @@ class RunSnapshot(CommonModel):
     )
     strategy = ElnureEnumField(Strategy)
     need_redistribution = models.JSONField(
-        default=list,
+        blank=True,
+        default=dict,
         help_text="Students who are not automatically distributed and need to be manually added to result.",
     )
     result = models.JSONField(
-        help_text="List of elective groups for elective subjects with students"
+        default=dict,
+        help_text="List of elective groups for elective subjects with students",
     )
     status = ElnureEnumField(Status, default=Status.DRAFT)
 

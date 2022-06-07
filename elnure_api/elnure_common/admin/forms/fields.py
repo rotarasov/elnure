@@ -3,6 +3,8 @@ from django.forms.fields import JSONField
 from django.forms.widgets import TextInput
 from django.utils.translation import gettext_lazy as _
 
+from elnure_common.json_schema import validate_schema, SEMESTER_SCHEMA
+
 
 class SemestersJSONField(JSONField):
     widget = TextInput
@@ -16,5 +18,9 @@ class SemestersJSONField(JSONField):
     def validate(self, value):
         super().validate(value)
 
-        if not isinstance(value, list) or not all(isinstance(s, int) for s in value):
-            raise ValidationError(_("Semesters should be a list of ints."))
+        validate_schema(
+            value,
+            SEMESTER_SCHEMA,
+            exc_cls=ValidationError,
+            exc_msg=_("Semesters should be a list of ints."),
+        )

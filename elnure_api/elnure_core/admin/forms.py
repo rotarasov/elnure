@@ -108,7 +108,6 @@ class RunSnapshotForm(forms.ModelForm):
     def clean(self):
         application_window = self.cleaned_data["application_window"]
         status = self.cleaned_data["status"]
-        need_redistribution = self.cleaned_data["need_redistribution"]
 
         if status == models.RunSnapshot.Status.ACCEPTED:
             already_exists = models.RunSnapshot.objects.filter(
@@ -119,6 +118,3 @@ class RunSnapshotForm(forms.ModelForm):
                 raise ValidationError(
                     _("Snapshot is already accepted for this application window.")
                 )
-
-        if not all(students == [] for students in need_redistribution.values()):
-            raise ValidationError(_("All students should be redistribtured"))
