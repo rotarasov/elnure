@@ -62,6 +62,14 @@ def get_start_year_by_group_name(group_name: str):
     return datetime.strptime(row_year, "%y").year
 
 
+# Miscellanous
+
+
+def shorten_year(long_year: int) -> int:
+    _date = datetime.strptime(f"{long_year}", "%Y")
+    return int(_date.strftime("%y"))
+
+
 # Group name factory
 
 

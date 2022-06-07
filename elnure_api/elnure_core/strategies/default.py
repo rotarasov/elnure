@@ -23,6 +23,7 @@ from utils import (
     get_start_year_by_current_study_year,
     get_study_years_by_semesters,
     get_start_year_by_group_name,
+    shorten_year,
 )
 
 
@@ -238,10 +239,11 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
 
         formed_groups = defaultdict(dict)
         for elective_course_id, students in student_bins.items():
-            start_year = students[0].academic_group.start_year
+            shortened_start_year = shorten_year(students[0].academic_group.start_year)
 
             group_factory = ElectiveGroupNameFactory(
-                course=all_courses_by_id[elective_course_id], start_year=start_year
+                course=all_courses_by_id[elective_course_id],
+                start_year=shortened_start_year,
             )
 
             students_num = len(students)
@@ -269,7 +271,8 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
 
                         group = students[start_idx:end_idx]
                         formed_groups[elective_course_id][group_name] = [
-                            self.serialize_user(student) for student in group
+                            self.student_serializer.serialize(student)
+                            for student in group
                         ]
                     break
 
