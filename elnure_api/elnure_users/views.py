@@ -1,3 +1,4 @@
+from datetime import datetime
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -14,12 +15,11 @@ from elnure_users.storage import Storage
 from elnure_users.serializers import (
     RequestSerializer,
     UserSerializer,
-    LoginResponseSerializer,
 )
 from elnure_users.jwt import generate_access_token_for_user
 
 
-class GoogleLoginView(APIView):
+class GoogleLoginAPIView(APIView):
     GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 
     FRONTEND_LOGIN_URL = f"{settings.BASE_FRONTEND_URL}/login"
@@ -71,25 +71,30 @@ class GoogleLoginView(APIView):
         if not user.active:
             raise NotFound("No active user with this data")
 
-        if settings.DEBUG:
-            # Login in to skip adding auth header every time during debug
-            auth.login(request, user)
-
         jwt_access_token = generate_access_token_for_user(user)
+
+        if user.is_admin:
+            # Necessary to maintain default Django login to admin panel
+            auth.login(request, user)
 
         if state:
             # If state is set then we have to redirect to another URL
-            return redirect(state)
+            response = redirect(state)
 
-        user_serializer = UserSerializer(user)
-        response_serializer = LoginResponseSerializer(
-            data={
-                "user": user_serializer.data,
-                "access_token": jwt_access_token,
-            }
+        else:
+            user_serializer = UserSerializer(user)
+            response = Response(user_serializer.data, status=200)
+
+        response.set_cookie(
+            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+            value=jwt_access_token,
+            expires=datetime.now() + settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+            secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+            httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
         )
 
-        return Response(response_serializer.initial_data, status=200)
+        return response
 
     def obtain_google_access_token(self, client, code):
         access_token = client.get_access_token(
@@ -113,3 +118,10 @@ class GoogleLoginView(APIView):
             "first_name": user_data.get("given_name", None),
             "last_name": user_data.get("family_name", None),
         }
+
+
+class LogoutAPIView(APIView):
+    def post(self, _request, *args, **kwargs):
+        response = Response(status=204)
+        response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE"])
+        return response

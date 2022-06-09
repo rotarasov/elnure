@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -109,12 +110,19 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
+        "elnure_users.authentication.JWTCookieAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+}
+
+SIMPLE_JWT = {
+    "AUTH_COOKIE": "_access_tok",
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "AUTH_COOKIE_SECURE": not DEBUG,
+    "AUTH_COOKIE_HTTP_ONLY": not DEBUG,
+    "AUTH_COOKIE_SAMESITE": "Lax",
 }
 
 

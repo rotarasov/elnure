@@ -99,11 +99,11 @@ class ChoiceSerializer(serializers.ModelSerializer):
         now = timezone.now()
         if application_window and application_window.start_date > now:
             raise serializers.ValidationError(
-                f"Students can not make a choice earlier than start date of the application window."
+                "Students can not make a choice earlier than start date of the application window."
             )
         if application_window and application_window.end_date < now:
             raise serializers.ValidationError(
-                f"Students can not make a choice later than start date of the application window."
+                "Students can not make a choice later than start date of the application window."
             )
 
         return attrs
@@ -114,7 +114,7 @@ class ChoiceSerializer(serializers.ModelSerializer):
         return value
 
     class Meta:
-        exclude = ["create_date", "update_date", "elective_groups"]
+        exclude = ["create_date", "update_date"]
         model = models.Choice
         validators = [
             serializers.UniqueTogetherValidator(
@@ -133,7 +133,6 @@ class ElectiveGroup(serializers.ModelSerializer):
 
 class RefChoiceSerializer(ReadOnlyModelSerializer):
     student = UserSerializer()
-    elective_groups = ElectiveGroup(many=True, allow_empty=True)
     application_window = config_serializers.ApplicationWindowSerializer()
 
     class Meta:

@@ -81,7 +81,6 @@ class ChoiceViewSet(
     """
 
     throttle_classes = [ChoiceRateThrottle]
-    serializer_class = serializers.ChoiceSerializer
     filterset_class = filters.ChoiceFilterSet
 
     def get_serializer_class(self):
@@ -90,6 +89,4 @@ class ChoiceViewSet(
         return serializers.ChoiceSerializer
 
     def get_queryset(self):
-        return models.Choice.objects.filter(student=self.request.user).select_related(
-            "application_window"
-        )
+        return models.Choice.objects.select_related("application_window")

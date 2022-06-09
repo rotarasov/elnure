@@ -19,6 +19,7 @@ class Instructor(CommonModel):
 
 class Block(CommonModel):
     name = models.CharField(max_length=150)
+    description = models.CharField(max_length=255, blank=True, null=True)
     total_credits = models.IntegerField(null=True, validators=[MinValueValidator(1)])
     capacity = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(1)]

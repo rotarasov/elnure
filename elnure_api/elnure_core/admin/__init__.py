@@ -25,6 +25,7 @@ class BlockAdmin(admin.ModelAdmin):
     fields = [
         "id",
         "name",
+        "description",
         "total_credits",
         "capacity",
         "semester",
