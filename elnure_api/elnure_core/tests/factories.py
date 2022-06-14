@@ -26,7 +26,6 @@ class ElectiveCourseFactory(factory.django.DjangoModelFactory):
     credits = fuzzy.FuzzyInteger(3, 5)
     performance_assessment = models.ElectiveCourse.PerformanceAssessment.GRADED_SEMESTER
     block = factory.SubFactory(BlockFactory)
-    semester = fuzzy.FuzzyInteger(2, 8)
 
     class Meta:
         model = models.ElectiveCourse
@@ -35,3 +34,8 @@ class ElectiveCourseFactory(factory.django.DjangoModelFactory):
 class InstructorAssignmentFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.InstructorAssignment
+
+
+class ChoiceFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.Choice

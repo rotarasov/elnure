@@ -51,16 +51,19 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
     ... ]
     Generated snapshot result will have the following structure:
     >>> {
-    ...    "<elective_course_id>": {
-    ...        "<elective_group_name 1>": [
-    ...            <Student aneksin.vasil@nure.ua>,  # Student model
-    ...            ...
-    ...        ],
-    ...        "<elective_group_name 2>": [
-    ...            ...
-    ...        ],
-    ...        ...
-    ...    },
+    ...    <semester_id>: {
+    ...         "<elective_course_id>": {
+    ...             "<elective_group_name 1>": [
+    ...                 <Student aneksin.vasil@nure.ua>,  # Student model
+    ...                 ...
+    ...             ],
+    ...             "<elective_group_name 2>": [
+    ...                 ...
+    ...             ],
+    ...             ...
+    ...         },
+    ...     },
+    ...     ...
     ... }
     """
 

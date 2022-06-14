@@ -1,11 +1,13 @@
 import pytest
 
+from elnure_users.models import User
+
 
 pytestmark = pytest.mark.django_db
 
 
-def test_create_user(user_model):
-    user = user_model.objects.create_user(
+def test_create_user():
+    user = User.objects.create_user(
         email="student@nure.ua",
         password="student_password",
         first_name="Андрей",
@@ -21,9 +23,8 @@ def test_create_user(user_model):
     assert user.academic_group == None
 
 
-@pytest.mark.usefixtures("groups")
-def test_create_superuser(user_model):
-    superuser = user_model.objects.create_superuser(
+def test_create_superuser():
+    superuser = User.objects.create_superuser(
         email="admin@nure.ua",
         password="admin_password",
         first_name="Евгений",
@@ -31,5 +32,4 @@ def test_create_superuser(user_model):
         patronymic="Романович",
     )
 
-    assert superuser.groups.count() == 1
-    assert superuser.groups.first().name == "Administrator"
+    assert superuser.is_admin

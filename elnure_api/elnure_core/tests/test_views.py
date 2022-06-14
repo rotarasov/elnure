@@ -21,6 +21,8 @@ pytestmark = pytest.mark.django_db
 )
 def test_elective_course_filtering(
     instructor_factory,
+    semester_factory,
+    block_factory,
     elective_course_factory,
     client,
     query_params,
@@ -28,7 +30,12 @@ def test_elective_course_filtering(
 ):
     i1 = instructor_factory()
     i2 = instructor_factory()
-    ec1 = elective_course_factory(semester=3)
+    ec1 = elective_course_factory(
+        semester=3,
+        block=block_factory(
+            semester=semester_factory(),
+        ),
+    )
     ec1.instructors.add(
         i1, through_defaults={"position": models.InstructorAssignment.Position.LECTURER}
     )
@@ -46,9 +53,12 @@ def test_elective_course_filtering(
     assert len(response.data) == expected_count, response.json()
 
 
-def test_create_elective_course(instructor_factory, client):
+def test_create_elective_course(
+    instructor_factory, semester_factory, block_factory, client
+):
     instructor_factory()
     instructor_factory()
+    block = (block_factory(semester=semester_factory()),)
     data = {
         "instructor_assignments": [
             {"instructor_id": 1, "position": "LECTURER"},
