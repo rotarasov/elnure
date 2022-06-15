@@ -35,8 +35,10 @@ class ErrorMessage:
 
 
 class RedistributeReason:
-    demounted_elective_course = "demounted_elective_course"
-    choiceless_students = "choiceless_students"
+    demounted_elective_course = (
+        "Elective course was demounted due to low number of students."
+    )
+    choiceless_student = "Student didn't select any disciplines for the next year."
 
 
 class DefaultChoiceStrategy(BaseChoiceStrategy):
@@ -199,12 +201,13 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
     ):
         for elective_course_id in elective_course_ids:
             for student in student_bins[elective_course_id]:
-                self.need_redistribution[semester.id].append(
+                self.run_snapshot.need_redistribution[semester.id].append(
                     {
-                        "student": student.id,
+                        "student": self.student_serializer.serialize(student),
                         "reason": RedistributeReason.demounted_elective_course,
                         "meta": {
                             "elective_course": elective_course_id,
+                            "semester": semester.id,
                         },
                     }
                 )
@@ -217,11 +220,11 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
         return set(all_students).difference(set(choiceful_students))
 
     def log_choiceless_students(self, students_without_choice, semester):
-        self.need_redistribution[semester.id].extend(
+        self.run_snapshot.need_redistribution[semester.id].extend(
             [
                 {
-                    "student": student.id,
-                    "reason": RedistributeReason.choiceless_students,
+                    "student": self.student_serializer.serialize(student),
+                    "reason": RedistributeReason.choiceless_student,
                     "meta": {},
                 }
                 for student in students_without_choice
@@ -331,7 +334,7 @@ class DefaultChoiceStrategy(BaseChoiceStrategy):
                         ElectiveGroupStudentAssociation.objects.get_or_create(
                             elective_group=elective_group,
                             student=student,
-                            choice=choices_by_student[student.id],
+                            choice=choices_by_student.get(student.id),
                         )
 
     # def add_students_without_choice(self, student_bins, students_without_choice, semester):

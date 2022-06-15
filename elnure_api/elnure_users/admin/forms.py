@@ -30,7 +30,8 @@ class UserForm(forms.ModelForm):
         academic_group = self.cleaned_data["academic_group"]
 
         if changed_password:
-            self.instance.set_password(self.instance.password)
+            new_password = self.cleaned_data.pop("password")
+            self.instance.set_password(new_password)
 
         if is_admin and academic_group:
             raise ValidationError(_("Admin can not be assigned to academic group"))
