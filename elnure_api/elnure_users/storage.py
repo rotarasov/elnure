@@ -15,3 +15,10 @@ class Storage:
         assert user.last_name == profile.get("last_name")
 
         return user, created
+
+    @staticmethod
+    def get_user_or_none(profile: dict) -> User | None:
+        try:
+            return User.unfiltered.get(email=profile["email"])
+        except User.DoesNotExist:
+            return None

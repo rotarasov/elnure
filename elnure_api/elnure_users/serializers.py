@@ -28,6 +28,6 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 
-class LoginResponseSerializer(serializers.Serializer):
-    user = UserSerializer()
-    access_token = serializers.CharField()
+class PlainLoginSerializer(serializers.Serializer):
+    email = serializers.CharField()
+    password = serializers.CharField()

@@ -16,6 +16,7 @@ pylibmc = "*"
 django-jazzmin = "*"
 django-json-widget = "*"
 jsonschema = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 powerline-shell = "*"

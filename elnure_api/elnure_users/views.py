@@ -15,6 +15,7 @@ from elnure_users.storage import Storage
 from elnure_users.serializers import (
     RequestSerializer,
     UserSerializer,
+    PlainLoginSerializer,
 )
 from elnure_users.jwt import generate_access_token_for_user
 
@@ -124,4 +125,43 @@ class LogoutAPIView(APIView):
     def post(self, _request, *args, **kwargs):
         response = Response(status=204)
         response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE"])
+        return response
+
+
+class MeAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        user_serializer = UserSerializer(self.request.user)
+        return Response(user_serializer.data, status=200)
+
+
+class PlainLoginAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = PlainLoginSerializer(data=request.POST)
+        serializer.is_valid(raise_exception=True)
+
+        user = Storage.get_user_or_none(serializer.data)
+        if not user:
+            return Response(data={"detail": "No user with such email."}, status=401)
+
+        if not user.check_password(serializer.data["password"]):
+            return Response(data={"detail": "Passwords do not match."}, status=401)
+
+        jwt_access_token = generate_access_token_for_user(user)
+
+        if user.is_admin:
+            # Necessary to maintain default Django login to admin panel
+            auth.login(request, user)
+
+        user_serializer = UserSerializer(user)
+        response = Response(user_serializer.data, status=200)
+
+        response.set_cookie(
+            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+            value=jwt_access_token,
+            expires=datetime.now() + settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"],
+            secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+            httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+        )
+
         return response
