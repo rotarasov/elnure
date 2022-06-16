@@ -17,6 +17,7 @@ django-jazzmin = "*"
 django-json-widget = "*"
 jsonschema = "*"
 django-cors-headers = "*"
+openpyxl = "*"
 
 [dev-packages]
 powerline-shell = "*"

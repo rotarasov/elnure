@@ -1,0 +1,36 @@
+version: '3.9'
+services:
+  server:
+    build:
+      context: ./elnure_api
+      dockerfile: Dockerfile
+    volumes:
+      - ./elnure_api/:/elnure_api/
+    command: gunicorn elnure_api.wsgi:application --reload --workers 1 --host 0.0.0.0 --port 8000
+    env_file:
+      - ./elnure_api/elnure_api/.env
+    ports:
+      - 8000:8000
+
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./elnure_api/elnure_api/.env
+    ports:
+      - 5432:5432
+  
+  ui:
+    container_name: elnure_ui
+    image: elnure_ui
+    build:
+      context: .
+      target: development
+    volumes:
+      - ./src:/elnure_ui/src
+    ports:
+      - 3000:3000
+
+volumes:
+  postgres_data: null
