@@ -4,15 +4,7 @@ import Semester from "../data/semester";
 import { convertFromApi } from "./utils";
 import Choice from "../data/choice";
 import ApplicationWindow from "../data/applicationWindow";
-
-export async function getSemestersInfo(
-  student: Student,
-  options = {}
-): Promise<Semester[]> {
-  return convertFromApi(
-    await get<Semester[]>("semesters", { for_student: student.id })
-  ) as Semester[];
-}
+import { FormationResult } from "../data/formationResult";
 
 export async function createChoice(
   choice: Choice,
@@ -27,6 +19,17 @@ export async function getApplicationWindows(
   options = {}
 ): Promise<ApplicationWindow[]> {
   return convertFromApi(
-    await get<ApplicationWindow[]>("appwindows", options)
+    await get<ApplicationWindow[]>("ref/appwindows", {}, options)
   ) as ApplicationWindow[];
+}
+
+export async function getFormationResults(
+  applicationWindowId: number | string,
+  options = {}
+): Promise<FormationResult[]> {
+  return await get<FormationResult[]>(
+    `appwindows/${applicationWindowId}/formation-results`,
+    {},
+    options
+  );
 }

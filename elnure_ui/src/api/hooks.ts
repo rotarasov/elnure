@@ -47,7 +47,7 @@ export const useUser = async (): Promise<Student> => {
 };
 
 export const useApplicationWindow = async () => {
-  let jsonApplicationWindow = localStorage.getItem("appwindow") || "null";
+  let jsonApplicationWindow = localStorage.getItem("appwindow") || "";
   if (!jsonApplicationWindow) {
     const jsonResp = await getApplicationWindows();
     jsonApplicationWindow = JSON.stringify(jsonResp[0]);

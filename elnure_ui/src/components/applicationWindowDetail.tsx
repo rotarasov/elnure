@@ -1,6 +1,7 @@
 import { useGet } from "src/api/hooks";
 import { Link } from "react-router-dom";
-import ApplicationWindow from "src/data/applicationWindow";
+import ApplicationWindow from "../data/applicationWindow";
+import Semester from "../data/semester";
 import { useEffect, useState } from "react";
 
 const ApplicationWindowDetail = () => {
@@ -30,12 +31,14 @@ const ApplicationWindowDetail = () => {
             </div>
             <div className="card-body">
                 <>
-                {currentApplicationWindow?.semesters?.map((semesterId, index) => {
-                    return (<div className="row my-3 ml-1">{index + 1}.&nbsp;<Link to={`/semester/${semesterId}`}>Choose elective subjects for Semester {semesterId}</Link></div>)
+                {currentApplicationWindow?.semesters?.map((semester: Semester, index) => {
+                    return (<div className="row my-3 ml-1">{index + 1}.&nbsp;<Link to={`/semester/${semester.id}`}>Choose elective subjects for Semester {semester.id}</Link></div>)
                 })}
                 </>
             </div>
-            
+            <div className="card-footer">
+                <Link className="text-center" to={`/application-window/${currentApplicationWindow?.id}/formation-results`}>Go to results page</Link>
+            </div>
         </div>
     )
 }

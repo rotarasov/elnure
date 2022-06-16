@@ -10,13 +10,14 @@ import { useParams, Link, Navigate } from "react-router-dom";
 import { ApiError, post } from "../../api";
 import ApplicationWindow from "../../data/applicationWindow";
 import { Strategy } from "../../data/strategies";
+import Semester from "../../data/semester";
+import SuccessPage from "../../components/success";
 
 const renderBlock = (block: Block, onClickCheckbox: (e: React.ChangeEvent<HTMLInputElement>) => void) => {
     return (
         <div className="card mt-3 card-primary card-outline">
             <div className="card-body">
                 <div className="card-title"><b>{block.name}</b></div>
-                {block.description && <p className="card-text">{block.description}</p>}
                 <hr/>
                 <>
                 {block.electiveCourses?.map((electiveCourse: ElectiveCourse) => {
@@ -42,6 +43,7 @@ const SemesterForm = () => {
     const [choiceValue, setChoiceValue] = useState<DefaultStrategyChoiceValue[]>([])
     const [user, setUser] = useState<Student>();
     const [applicationWindow, setApplicationWindow] = useState<ApplicationWindow>();
+    const [semester, setSemester] = useState<Semester>();
     const [success, setSuccess] = useState<boolean>(false);
 
     useEffect(() => {
@@ -56,7 +58,15 @@ const SemesterForm = () => {
         }
 
         fetchApplicationWindow().then(data => setApplicationWindow(data)).catch((e) => console.log(`Application window fetch error: ${e}`))
-    }, [])
+    }, [params])
+
+    useEffect(() => {
+        applicationWindow?.semesters?.forEach((semester: Semester) => {
+            if (semester.id?.toString() == params.semesterId) {
+                setSemester(semester)
+            }
+        })
+    }, [applicationWindow])
 
     const onChangeCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
         const electiveCourseId = parseInt(e.target.dataset.electiveCourseId || "0");
@@ -106,11 +116,14 @@ const SemesterForm = () => {
             throw new Error("Not all items are set.")
         }
 
+        const apiChoiceValue = choiceValue.map((choice) => {
+            return {block_id: choice.blockId, elective_course_ids: choice.electiveCourseIds}
+        })
         const choice = {
             student: user.id,
             application_window: applicationWindow.id,
             semester: params.semesterId,
-            value: choiceValue,
+            value: apiChoiceValue,
             strategy: Strategy.DEFAULT
         }
 
@@ -123,11 +136,16 @@ const SemesterForm = () => {
     }
 
     if (success) {
-        return <Navigate to="/success"/>
+        return <SuccessPage semesterId={params.semesterId as string} />
     }
 
     return (
         <form onSubmit={onSubmit}>
+            <div>
+                <h3>Semester <span className="badge badge-secondary">{params.semesterId}</span></h3>
+                <p>{semester?.description}</p>
+                <hr/>
+            </div>
             <>
             {blocks?.map((block: Block) => {
                 return renderBlock(block, onChangeCheckbox)
