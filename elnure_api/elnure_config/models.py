@@ -10,6 +10,7 @@ class Semester(CommonModel):
     id = models.PositiveIntegerField(
         primary_key=True, help_text="Id should be equal to the number of the semester."
     )
+    description = models.CharField(max_length=255, blank=True, null=True)
     total_credits = models.PositiveIntegerField(
         help_text="How many credits in total should be covered by electives"
     )

@@ -39,10 +39,10 @@ class RunSnapshptWriter(BaseWriter):
             wb.add_named_style(style)
 
         for i, sheet in enumerate(sheets):
-            ws = wb.create_sheet(title=sheet.name, index=i)
+            ws = wb.create_sheet(title=sheet["name"], index=i)
 
             offset = 1
-            for elective_course, elective_groups in sheet.data.items():
+            for elective_course, elective_groups in sheet["data"].items():
                 offset = self.build_elective_course(
                     ws, offset, elective_course, elective_groups
                 )

@@ -19,7 +19,6 @@ class Instructor(CommonModel):
 
 class Block(CommonModel):
     name = models.CharField(max_length=150)
-    description = models.CharField(max_length=255, blank=True, null=True)
     total_credits = models.IntegerField(null=True, validators=[MinValueValidator(1)])
     capacity = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(1)]
@@ -112,7 +111,7 @@ class Strategy(models.TextChoices):
 class Choice(CommonModel):
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         related_name="elective_course_choices",
     )
     semester = models.ForeignKey(
@@ -134,7 +133,7 @@ class Choice(CommonModel):
 
     class Meta:
         db_table = "choices"
-        unique_together = ["student", "application_window"]
+        unique_together = ["student", "application_window", "semester"]
 
     def __str__(self) -> str:
         return f"{self.student.get_full_name()} -- Semester {self.semester_id}"

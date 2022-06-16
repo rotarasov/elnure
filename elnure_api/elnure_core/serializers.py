@@ -115,7 +115,7 @@ class ChoiceSerializer(serializers.ModelSerializer):
         validators = [
             serializers.UniqueTogetherValidator(
                 queryset=models.Choice.objects.all(),
-                fields=["student", "application_window"],
+                fields=["student", "application_window", "semester"],
                 message="Only one application is allowed for the current application window.",  # Overriding django default message
             )
         ]
@@ -143,7 +143,6 @@ class RefBlockSerializer(ReadOnlyModelSerializer):
         fields = [
             "id",
             "name",
-            "description",
             "total_credits",
             "capacity",
             "must_choose",

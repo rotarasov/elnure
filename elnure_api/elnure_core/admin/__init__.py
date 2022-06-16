@@ -26,7 +26,6 @@ class BlockAdmin(admin.ModelAdmin):
     fields = [
         "id",
         "name",
-        "description",
         "total_credits",
         "capacity",
         "semester",
@@ -143,7 +142,7 @@ class RunSnapshotAdmin(admin.ModelAdmin):
             )
             response.headers[
                 "Content-Disposition"
-            ] = f"attachment; filename={str(obj.application_window)}"
+            ] = f"attachment; filename={str(obj.application_window)}.xlsx"
             response.write(stream)
 
         return response

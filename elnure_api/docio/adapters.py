@@ -28,7 +28,7 @@ class RunSnapshotDictsAdapter(BaseAdapter):
         result = []
         for semester_id in config.SEMESTERS:
             semester_key = f"Semester {semester_id}"
-            sheet = Sheet(name=semester_key, data={})
+            sheet = {"name": semester_key, "data": {}}
 
             snapshot_data = run_snapshot.result[str(semester_id)]
 
@@ -42,7 +42,7 @@ class RunSnapshotDictsAdapter(BaseAdapter):
                 elective_course_key = (
                     f"{elective_course.name}({elective_course.shortcut})"
                 )
-                sheet.data[elective_course_key] = {}
+                sheet["data"][elective_course_key] = {}
 
                 for student_group_association in (
                     ElectiveGroupStudentAssociation.objects.filter(
@@ -56,13 +56,13 @@ class RunSnapshotDictsAdapter(BaseAdapter):
                     .select_related("elective_group", "student__academic_group")
                 ):
                     elective_group_key = student_group_association.elective_group.name
-                    if not elective_group_key in sheet.data[elective_course_key]:
-                        sheet.data[elective_course_key][elective_group_key] = []
+                    if not elective_group_key in sheet["data"][elective_course_key]:
+                        sheet["data"][elective_course_key][elective_group_key] = []
 
                     student = student_group_association.student
-                    sheet.data[elective_course_key][elective_group_key].append(
+                    sheet["data"][elective_course_key][elective_group_key].append(
                         [
-                            f"{len(sheet.data[elective_course_key][elective_group_key]) + 1}.",
+                            f"{len(sheet['data'][elective_course_key][elective_group_key]) + 1}.",
                             student.email,
                             student.get_full_name(),
                             student.academic_group.name,
