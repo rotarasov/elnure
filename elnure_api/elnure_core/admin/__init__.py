@@ -1,10 +1,11 @@
 from django.contrib import admin, messages
 from django.db import models as django_models
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django_json_widget.widgets import JSONEditorWidget
 
+from docio.writers.excel.run_snapshot_writer import RunSnapshptWriter
 from elnure_api.admin import elnure_admin_site
 from elnure_common.admin import forms as common_forms
 from elnure_core import models
@@ -132,5 +133,17 @@ class RunSnapshotAdmin(admin.ModelAdmin):
                 request,
                 f"Elective groups are generated for application window: {str(obj.application_window)}",
             )
+
+        if "_save_and_export" in request.POST:
+            writer = RunSnapshptWriter()
+            stream = writer.build(obj)
+
+            response = HttpResponse(
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            response.headers[
+                "Content-Disposition"
+            ] = f"attachment; filename={str(obj.application_window)}"
+            response.write(stream)
 
         return response

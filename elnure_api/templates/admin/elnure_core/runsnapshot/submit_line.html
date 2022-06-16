@@ -1,10 +1,20 @@
-{% extends 'admin/submit_line.html' %}
-
-{% load i18n %}
-
-{% block extra-actions %}
-<hr/>
+{% extends 'admin/submit_line.html' %} {% load i18n %} {% block extra-actions %}
+<hr />
 <div class="form-group">
-    <input type="submit" class="btn btn-primary form-control" value="{% trans 'Save and make elective groups permanent' %}" name="_save_and_make_permanent">
+  <input
+    type="submit"
+    class="btn btn-primary form-control"
+    value="{% trans 'Save and make elective groups permanent' %}"
+    name="_save_and_make_permanent"
+  />
+</div>
+<hr />
+<div class="form-group">
+  <input
+    type="submit"
+    class="btn btn-info form-control"
+    value="{% trans 'Save and export elective groups' %}"
+    name="_save_and_export"
+  />
 </div>
 {% endblock %}
