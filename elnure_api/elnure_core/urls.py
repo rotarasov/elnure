@@ -7,6 +7,7 @@ router = DefaultRouter(trailing_slash=False)
 
 router.register("instructors", views.InstructorViewSet, basename="instructor")
 router.register("blocks", views.BlockViewSet, basename="block")
+router.register("ref/blocks", views.RefBlockListViewSet, basename="ref-block")
 router.register(
     "elective-courses", views.ElectiveCourseViewSet, basename="elective-course"
 )

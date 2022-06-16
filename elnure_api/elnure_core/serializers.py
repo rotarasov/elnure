@@ -1,4 +1,3 @@
-from xml.dom import ValidationErr
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
@@ -33,14 +32,13 @@ class InstructorAssignmentSerializer(serializers.ModelSerializer):
 
 class ElectiveCourseSerializer(serializers.ModelSerializer):
     instructor_assignments = InstructorAssignmentSerializer(
-        many=True, source="instructors.through.objects"
+        many=True, source="instructorassignment_set"
     )
 
     class Meta:
         fields = [
             "id",
             "instructor_assignments",
-            "semester",
             "name",
             "shortcut",
             "syllabus",
@@ -53,9 +51,7 @@ class ElectiveCourseSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        instructor_assignments = (
-            validated_data.pop("instructors", {}).get("through", {}).get("objects", [])
-        )
+        instructor_assignments = validated_data.pop("instructorassignment_set", [])
 
         instance = super().create(validated_data)
 
@@ -138,3 +134,19 @@ class RefChoiceSerializer(ReadOnlyModelSerializer):
     class Meta:
         exclude = ["create_date", "update_date"]
         model = models.Choice
+
+
+class RefBlockSerializer(ReadOnlyModelSerializer):
+    elective_courses = ElectiveCourseSerializer(many=True)
+
+    class Meta:
+        fields = [
+            "id",
+            "name",
+            "description",
+            "total_credits",
+            "capacity",
+            "must_choose",
+            "elective_courses",
+        ]
+        model = models.Block

@@ -79,13 +79,15 @@ WSGI_APPLICATION = "elnure_api.wsgi.application"
 
 DATABASES = {"default": env.db("DJANGO_DATABASE_URL")}
 
-
-CACHES = {
-    "default": {
+CACHES = {}
+if env.bool("DJANGO_ENABLE_CACHE", False):
+    CACHES["default"] = {
         "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
         "LOCATION": "127.0.0.1:11211",
     }
-}
+
+else:
+    CACHES["default"] = {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}
 
 
 # Password validation
@@ -125,6 +127,7 @@ SIMPLE_JWT = {
     "AUTH_COOKIE_SECURE": True,
     "AUTH_COOKIE_HTTP_ONLY": not DEBUG,
     "AUTH_COOKIE_SAMESITE": "Lax",
+    "CONFIRM_AUTH_COOKIE": "_include_auth",
 }
 
 

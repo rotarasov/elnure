@@ -1,3 +1,5 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework.mixins import (
     RetrieveModelMixin,
     CreateModelMixin,
@@ -40,6 +42,17 @@ class BlockViewSet(ModelViewSet):
 
     serializer_class = serializers.BlockSerializer
     queryset = models.Block.objects
+    filterset_class = filters.BlockFilterSet
+
+
+class RefBlockListViewSet(ListModelMixin, GenericViewSet):
+    serializer_class = serializers.RefBlockSerializer
+    queryset = models.Block.objects
+    filterset_class = filters.BlockFilterSet
+
+    @method_decorator(cache_page(60 * 15))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class ElectiveCourseViewSet(ModelViewSet):

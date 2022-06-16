@@ -16,6 +16,10 @@ class ElectiveCourseFilterSet(filters.FilterSet):
         fields = ["instructors", "block"]
 
 
+class BlockFilterSet(filters.FilterSet):
+    semester = filters.NumberFilter(field_name="semester")
+
+
 class ChoiceFilterSet(filters.FilterSet):
     application_window = filters.NumberFilter(
         field_name="application_window_id", lookup_expr="exact"

@@ -125,6 +125,7 @@ class LogoutAPIView(APIView):
     def post(self, _request, *args, **kwargs):
         response = Response(status=204)
         response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE"])
+        response.delete_cookie(settings.SIMPLE_JWT["CONFIRM_AUTH_COOKIE"])
         return response
 
 
@@ -135,8 +136,10 @@ class MeAPIView(APIView):
 
 
 class PlainLoginAPIView(APIView):
+    permission_classes = []
+
     def post(self, request, *args, **kwargs):
-        serializer = PlainLoginSerializer(data=request.POST)
+        serializer = PlainLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         user = Storage.get_user_or_none(serializer.data)
