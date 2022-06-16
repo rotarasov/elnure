@@ -1,4 +1,4 @@
-export default interface DefaultStrategyValue {
+export default interface DefaultStrategyChoiceValue {
   blockId?: number;
   electiveCourseIds?: number[];
 }

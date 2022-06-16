@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
-import { get } from ".";
-import Student from "src/data/student";
+import { get, ApiError } from ".";
+import Student from "../data/student";
+import { getApplicationWindows } from "./core";
+import { getMe } from "./users";
+import { convertFromApi } from "./utils";
 
 export function useGet<T>(
   endpoint: string,
@@ -16,25 +19,39 @@ export function useGet<T>(
       setInProgress(true);
 
       try {
-        setResult(await get(endpoint, data, options));
+        return await get(endpoint, data, options);
       } catch (e) {
-        setErrors([(e as Error).message]);
+        if ((e as ApiError).code >= 500) {
+          setErrors(["Internal Error"]);
+        } else {
+          setErrors((e as ApiError).body);
+        }
       }
 
       setInProgress(false);
     }
-    fetchData();
+    fetchData().then((result) => setResult(convertFromApi(result) as T | null));
   }, [endpoint]);
 
   return [inProgress, result, errors];
 }
 
-export const useUser = async (): Promise<Student | null> => {
+export const useUser = async (): Promise<Student> => {
   let jsonUser = localStorage.getItem("user") || "";
   if (!jsonUser) {
-    const jsonResp = await get("me");
-    jsonUser = jsonResp;
+    const jsonResp = await getMe();
+    jsonUser = JSON.stringify(jsonResp);
     localStorage.setItem("user", jsonUser);
   }
   return JSON.parse(jsonUser);
+};
+
+export const useApplicationWindow = async () => {
+  let jsonApplicationWindow = localStorage.getItem("appwindow") || "null";
+  if (!jsonApplicationWindow) {
+    const jsonResp = await getApplicationWindows();
+    jsonApplicationWindow = JSON.stringify(jsonResp[0]);
+    localStorage.setItem("appwindow", jsonApplicationWindow);
+  }
+  return JSON.parse(jsonApplicationWindow);
 };

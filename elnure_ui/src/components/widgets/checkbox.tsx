@@ -1,19 +1,31 @@
+import './checkbox.css';
+
+export interface DataAttribute {
+    name: string;
+    value?: any;
+}
+
 export interface CheckboxProps {
     label: string;
     value: string;
-    name: string;
     id?: string;
     href?: string;
-    onClick: () => void
+    dataAttrs?: DataAttribute[]
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 const CheckboxInput = (props: CheckboxProps) => {
-    props.onClick = props.onClick ?? undefined
+    const onChange = props.onChange ?? undefined
+
+    const dataAttrs: Record<string, any> = {}
+    props.dataAttrs?.forEach((dataAttr) => {
+        dataAttrs[dataAttr.name] = dataAttr.value
+    })
     return (
-        <div className="form-check">
-            <input className="form-check-input" type="radio" name={props.name} id={props.id} value={props.value} onClick={props.onClick} />
+        <div className="form-check mt-3">
+            <input {...dataAttrs} className="form-check-input" type="checkbox" id={props.id} value={props.value} onChange={props.onChange} />
             <label className="form-check-label" htmlFor={props.id}>
-                { props.href ? <a href={props.href}>{props.label}</a> : <>{props.label}</> }
+                {props.label} {props.href && <a href={props.href}><img src="../../../link.png" alt="Link"></img></a>}
             </label>
         </div>
     )

@@ -1,23 +1,32 @@
-import { Errors, get, post } from "src/api/index";
-import Student from "src/data/student";
-import Semester from "src/data/semester";
-import { convertFromApi } from "src/api/utils";
-import Choice from "src/data/choice";
+import { ApiError, get, post } from ".";
+import Student from "../data/student";
+import Semester from "../data/semester";
+import { convertFromApi } from "./utils";
+import Choice from "../data/choice";
+import ApplicationWindow from "../data/applicationWindow";
 
 export async function getSemestersInfo(
   student: Student,
   options = {}
-): Promise<Semester[] | Errors> {
+): Promise<Semester[]> {
   return convertFromApi(
-    await get<Semester[] | Errors>("semesters", { for_student: student.id })
+    await get<Semester[]>("semesters", { for_student: student.id })
   ) as Semester[];
 }
 
 export async function createChoice(
   choice: Choice,
   options = {}
-): Promise<Choice | Errors> {
+): Promise<Choice> {
   return convertFromApi(
-    await post<Choice | Errors>("choices", choice, options)
-  );
+    await post<Choice>("choices", choice, options)
+  ) as Choice;
+}
+
+export async function getApplicationWindows(
+  options = {}
+): Promise<ApplicationWindow[]> {
+  return convertFromApi(
+    await get<ApplicationWindow[]>("appwindows", options)
+  ) as ApplicationWindow[];
 }

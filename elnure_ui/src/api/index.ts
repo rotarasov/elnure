@@ -1,5 +1,5 @@
-import { BASE_API_URL, VERSION } from "src/constants";
-import redirectToGoogleSSO from "src/api/sso";
+import { BASE_API_URL, BASE_FRONTEND_URL, VERSION } from "../constants";
+import redirectToGoogleSSO from "./sso";
 
 export enum StatusCode {
   SUCCESS = 200,
@@ -7,32 +7,48 @@ export enum StatusCode {
   UNAUTHENTICATED = 401,
 }
 
-export type Errors = Record<string, string[]>;
+export class ApiError extends Error {
+  code: number;
+  body: any;
+
+  constructor(code: number, body?: any) {
+    super(`API Error: code ${code}; body ${body}`);
+
+    this.code = code;
+    this.body = body;
+
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+}
 
 const DEFAULT_OPTIONS = {
   headers: {
     "Content-Type": "application/json",
   },
+  credentials: "include",
 };
 
 function getUrl(endpoint: string) {
   return `${BASE_API_URL}/api/${VERSION}/${endpoint}`;
 }
 
-export async function request(enddpoint: string, options = {}) {
-  const url = getUrl(enddpoint);
+export async function request(endpoint: string, options = {}) {
+  const url = getUrl(endpoint);
   const resp = await fetch(url, options);
   const json = await resp.json();
   const { status } = resp;
 
   if (status === StatusCode.UNAUTHENTICATED) {
-    redirectToGoogleSSO(window.location.href);
+    // redirectToGoogleSSO(window.location.href);
+    window.location.href = `${BASE_FRONTEND_URL}/login`;
   }
 
   if (status >= StatusCode.SUCCESS && status < 300) {
     return json;
-  } else {
-    throw new Error(`API Error: ${json}`);
+  } else if (status >= 400 && status < 500) {
+    throw new ApiError(status, json);
+  } else if (status >= 500) {
+    throw new ApiError(status);
   }
 }
 

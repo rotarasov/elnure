@@ -1,0 +1,13 @@
+.card-img-top {
+    margin: auto;
+    width: 300px;
+    height: 300px;
+}
+
+input[type="image"] {
+    width: 300px
+}
+
+.loginCard {
+    width: 50%;
+}

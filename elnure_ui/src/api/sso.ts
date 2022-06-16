@@ -2,7 +2,7 @@ import {
   BASE_API_URL,
   BASE_FRONTEND_URL,
   REACT_APP_GOOGLE_CLIENT_ID,
-} from "src/constants";
+} from "../constants";
 
 export default function redirectToGoogleSSO(state: string = "") {
   const googleAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -14,7 +14,7 @@ export default function redirectToGoogleSSO(state: string = "") {
     "openid",
   ].join(" ");
 
-  state = state || `${BASE_FRONTEND_URL}/choice`;
+  state = state || `${BASE_FRONTEND_URL}/application-window`;
 
   const params = {
     response_type: "code",

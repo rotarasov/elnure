@@ -22,7 +22,7 @@
     "jsx": "react-jsx"
   },
   "include": [
-    "src/",
+    "elnure_ui/src/",
     "**/*.ts",
     "**/*.tsx"
   ]
